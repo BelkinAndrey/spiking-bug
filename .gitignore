@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build-venv/
+env/
+
+# PyInstaller artifacts
+build/
+dist/
+*.spec
+spiking-bug.exe
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local server state
+*.log

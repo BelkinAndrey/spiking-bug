@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Spiking Bug — лаборатория</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="title">Spiking-Bug · Импульсный агент</div>
+    <div class="controls">
+        <button id="btn-play" class="primary">▶ Старт</button>
+        <button id="btn-pause">⏸ Пауза</button>
+        <button id="btn-reset-agent">⟲ Сбросить агента</button>
+        <button id="btn-reset-net">⟲ Сбросить сеть</button>
+        <label class="stat sim-hz-ctl">частота сети:
+            <input type="range" id="sim-hz" min="1" max="100" step="1" value="100">
+            <span id="sim-hz-val">100</span> Hz
+        </label>
+        <span class="stat">food: <span id="stat-food">0</span></span>
+        <span class="stat">hp: <span id="stat-hp">1.00</span></span>
+        <span class="stat">голод: <span id="stat-hunger">0.00</span></span>
+        <span class="stat">устал.: <span id="stat-fatigue">0.00</span></span>
+        <span class="stat">t: <span id="stat-time">0.0</span> с</span>
+    </div>
+</header>
+
+<main class="layout">
+
+    <section class="panel env-panel">
+        <div class="panel-head">
+            <h2>1 · Среда агента</h2>
+            <div class="toolbar">
+                <div class="tool-group" id="env-tool-group">
+                    <button class="tool-btn active" data-tool="select">↖ Курсор</button>
+                    <button class="tool-btn" data-tool="food">🟢 Еда</button>
+                    <button class="tool-btn" data-tool="threat">🔴 Угроза</button>
+                    <button class="tool-btn" data-tool="obstacle">▣ Препятствие</button>
+                    <button class="tool-btn" data-tool="agent">🐞 Агент</button>
+                    <button class="tool-btn" data-tool="erase">✕ Стереть</button>
+                </div>
+                <button id="env-clear-food">очистить еду</button>
+                <button id="env-clear-threat">очистить угрозы</button>
+                <button id="env-clear-obs">очистить препятствия</button>
+                <button id="env-reset-view" title="Сбросить зум">⊙ 1:1</button>
+            </div>
+        </div>
+        <div class="env-wrap">
+            <canvas id="env-canvas" width="1100" height="700"></canvas>
+        </div>
+        <div class="env-tools">
+            <div class="slider-row">
+                <label>еды в среде
+                    <input type="range" id="food-target" min="0" max="30" step="1" value="5">
+                    <span id="food-target-val">5</span>
+                </label>
+                <label>угроз в среде
+                    <input type="range" id="threat-target" min="0" max="15" step="1" value="0">
+                    <span id="threat-target-val">0</span>
+                </label>
+                <label>жизнь угрозы, с
+                    <input type="range" id="threat-life" min="2" max="60" step="1" value="12">
+                    <span id="threat-life-val">12</span>
+                </label>
+                <label>голод/с
+                    <input type="range" id="hunger-rate" min="0" max="0.3" step="0.005" value="0.05">
+                    <span id="hunger-rate-val">0.050</span>
+                </label>
+                <label>усталость/действ.
+                    <input type="range" id="fatigue-gain" min="0" max="0.1" step="0.001" value="0.02">
+                    <span id="fatigue-gain-val">0.020</span>
+                </label>
+                <label>отдых/с
+                    <input type="range" id="fatigue-decay" min="0" max="0.5" step="0.005" value="0.10">
+                    <span id="fatigue-decay-val">0.100</span>
+                </label>
+            </div>
+            <div class="manual-row">
+                <span class="hint">Ручное управление мотонейронами (нажми и держи):</span>
+                <button class="motor" data-motor="forward">↑ Вперёд (W)</button>
+                <button class="motor" data-motor="backward">↓ Назад (S)</button>
+                <button class="motor" data-motor="left">↶ Влево (A)</button>
+                <button class="motor" data-motor="right">↷ Вправо (D)</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel net-panel">
+        <div class="panel-head">
+            <h2>2 · Импульсная сеть</h2>
+            <div class="toolbar">
+                <div class="tool-group" id="net-tool-group">
+                    <button class="tool-btn active" data-tool="select">↖ Курсор</button>
+                    <button class="tool-btn" data-tool="add-neuron">+ Нейрон</button>
+                    <button class="tool-btn" data-tool="add-synapse">→ Синапс</button>
+                    <button class="tool-btn" data-tool="add-frame">⬚ Рамка</button>
+                    <button class="tool-btn" data-tool="delete">✕ Удалить</button>
+                </div>
+                <button id="net-reset-view" title="Сбросить зум">⊙ 1:1</button>
+                <button id="net-save">💾 Сохранить</button>
+                <button id="net-load">📂 Загрузить</button>
+                <button id="net-export">⬇ Экспорт JSON</button>
+                <button id="net-import">⬆ Импорт JSON</button>
+                <input type="file" id="net-import-file" accept="application/json" style="display:none">
+            </div>
+        </div>
+        <div class="net-wrap">
+            <canvas id="net-canvas" width="720" height="540"></canvas>
+            <div id="net-tooltip" class="tooltip hidden"></div>
+            <aside class="props" id="props-panel">
+                <h3>Свойства</h3>
+                <div id="props-empty" class="props-empty">Выбери нейрон или синапс</div>
+                <div id="props-neuron" class="props-form hidden">
+                    <div class="row"><label>ID</label><span id="prop-n-id"></span></div>
+                    <div class="row"><label>тип</label><span id="prop-n-kind"></span></div>
+                    <div class="row"><label>имя</label><input id="prop-n-label" type="text"></div>
+                    <div class="row"><label>порог</label><input id="prop-n-threshold" type="number" step="0.05"></div>
+                    <div class="row"><label>утечка</label><input id="prop-n-leak" type="number" step="0.01" min="0" max="1"></div>
+                    <div class="row"><label>V_reset</label><input id="prop-n-reset" type="number" step="0.05"></div>
+                    <div class="row"><label>рефр., шагов</label><input id="prop-n-refr" type="number" step="1" min="0"></div>
+                    <div class="row"><label>шум σ</label><input id="prop-n-noise" type="number" step="0.01" min="0"></div>
+                    <button id="prop-n-apply" class="primary">Применить</button>
+                    <button id="prop-n-delete">Удалить нейрон</button>
+                </div>
+                <div id="props-synapse" class="props-form hidden">
+                    <div class="row"><label>от</label><span id="prop-s-from"></span></div>
+                    <div class="row"><label>к</label><span id="prop-s-to"></span></div>
+                    <div class="row"><label>вес</label><input id="prop-s-weight" type="number" step="0.05"></div>
+                    <div class="row"><label>задержка, шагов</label><input id="prop-s-delay" type="number" step="1" min="1" max="64"></div>
+                    <button id="prop-s-apply" class="primary">Применить</button>
+                    <button id="prop-s-delete">Удалить синапс</button>
+                </div>
+                <div id="props-group" class="props-form hidden">
+                    <div class="row"><label>ID</label><span id="prop-g-id"></span></div>
+                    <div class="row"><label>текст</label><input id="prop-g-label" type="text"></div>
+                    <div class="row"><label>цвет</label><input id="prop-g-color" type="color"></div>
+                    <div class="row col"><label>коммент. (виден при наведении на название)</label>
+                        <textarea id="prop-g-comment" rows="4" placeholder="например: задача этой группы, что в неё входит, заметки…"></textarea>
+                    </div>
+                    <button id="prop-g-apply" class="primary">Применить</button>
+                    <button id="prop-g-delete">Удалить рамку</button>
+                </div>
+                <div id="props-multi" class="props-form hidden">
+                    <div class="row"><span id="prop-multi-info">несколько объектов выбрано</span></div>
+                    <button id="prop-multi-delete">Удалить выделение</button>
+                </div>
+            </aside>
+        </div>
+        <div class="legend">
+            <span class="dot sensor"></span> сенсорный
+            <span class="dot motor"></span> моторный
+            <span class="dot inter"></span> промежуточный
+            <span class="hint">яркость = мембр. потенциал · вспышка = спайк</span>
+        </div>
+    </section>
+
+</main>
+
+<dialog id="save-dialog">
+    <form method="dialog">
+        <h3>Сохранить сеть</h3>
+        <label>Имя файла: <input id="save-name" type="text" value="my_net" required></label>
+        <menu>
+            <button value="cancel">Отмена</button>
+            <button id="save-confirm" value="ok" class="primary">Сохранить</button>
+        </menu>
+    </form>
+</dialog>
+
+<dialog id="load-dialog">
+    <form method="dialog">
+        <h3>Загрузить сеть</h3>
+        <ul id="load-list"></ul>
+        <menu>
+            <button value="cancel">Отмена</button>
+        </menu>
+    </form>
+</dialog>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='environment.js') }}"></script>
+<script src="{{ url_for('static', filename='editor.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

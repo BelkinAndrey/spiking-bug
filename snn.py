@@ -34,6 +34,7 @@ class SpikingNetwork:
         self.threshold = np.ones(capacity, dtype=np.float32)
         self.leak = np.full(capacity, 0.08, dtype=np.float32)
         self.v_reset = np.zeros(capacity, dtype=np.float32)
+        self.v_min = np.full(capacity, -100.0, dtype=np.float32)
         self.noise_std = np.zeros(capacity, dtype=np.float32)
         self.refractory_left = np.zeros(capacity, dtype=np.int32)
         self.refractory_period = np.full(capacity, 2, dtype=np.int32)
@@ -64,6 +65,7 @@ class SpikingNetwork:
         threshold: float = 1.0,
         leak: float = 0.08,
         v_reset: float = 0.0,
+        v_min: float = -100.0,
         refractory: int = 2,
         noise_std: float = 0.0,
     ) -> int:
@@ -78,6 +80,7 @@ class SpikingNetwork:
         self.threshold[idx] = threshold
         self.leak[idx] = leak
         self.v_reset[idx] = v_reset
+        self.v_min[idx] = v_min
         self.refractory_period[idx] = max(0, int(refractory))
         self.noise_std[idx] = max(0.0, float(noise_std))
         self.V[idx] = 0.0
@@ -107,7 +110,7 @@ class SpikingNetwork:
         if a == b:
             return
         for arr in (
-            self.V, self.threshold, self.leak, self.v_reset,
+            self.V, self.threshold, self.leak, self.v_reset, self.v_min,
             self.noise_std, self.refractory_left, self.refractory_period,
             self.spikes, self.spike_count,
         ):
@@ -127,6 +130,7 @@ class SpikingNetwork:
         self.threshold[idx] = 1.0
         self.leak[idx] = 0.08
         self.v_reset[idx] = 0
+        self.v_min[idx] = -100.0
         self.noise_std[idx] = 0
         self.refractory_left[idx] = 0
         self.refractory_period[idx] = 2
@@ -163,6 +167,8 @@ class SpikingNetwork:
             self.leak[idx] = float(params["leak"])
         if "v_reset" in params:
             self.v_reset[idx] = float(params["v_reset"])
+        if "v_min" in params:
+            self.v_min[idx] = float(params["v_min"])
         if "refractory" in params:
             self.refractory_period[idx] = max(0, int(params["refractory"]))
         if "noise_std" in params:
@@ -255,6 +261,10 @@ class SpikingNetwork:
         V_next = np.where(new_spikes, reset, V_next)
         refr_next = np.where(new_spikes, self.refractory_period[:n], refr_next)
 
+        # Clamp V to v_min
+        v_min = self.v_min[:n]
+        V_next = np.maximum(V_next, v_min)
+
         self.V[:n] = V_next
         self.refractory_left[:n] = refr_next
         self.spikes[:n] = new_spikes
@@ -330,6 +340,7 @@ class SpikingNetwork:
                 "threshold": float(self.threshold[i]),
                 "leak": float(self.leak[i]),
                 "v_reset": float(self.v_reset[i]),
+                "v_min": float(self.v_min[i]),
                 "refractory": int(self.refractory_period[i]),
                 "noise_std": float(self.noise_std[i]),
             })
@@ -361,6 +372,7 @@ class SpikingNetwork:
         self.threshold[:] = 1.0
         self.leak[:] = 0.08
         self.v_reset[:] = 0
+        self.v_min[:] = -100.0
         self.noise_std[:] = 0
         self.refractory_left[:] = 0
         self.refractory_period[:] = 2
@@ -398,6 +410,7 @@ class SpikingNetwork:
                 threshold=nrec.get("threshold", 1.0),
                 leak=nrec.get("leak", 0.08),
                 v_reset=nrec.get("v_reset", 0.0),
+                v_min=nrec.get("v_min", -100.0),
                 refractory=nrec.get("refractory", 2),
                 noise_std=nrec.get("noise_std", 0.0),
             )

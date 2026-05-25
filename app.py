@@ -380,6 +380,7 @@ def on_add_neuron(msg):
             threshold=float(msg.get("threshold", 1.0)),
             leak=float(msg.get("leak", 0.1)),
             v_reset=float(msg.get("v_reset", 0.0)),
+            v_min=float(msg.get("v_min", -100.0)),
             refractory=int(msg.get("refractory", 2)),
             noise_std=float(msg.get("noise_std", 0.0)),
         )

@@ -298,14 +298,22 @@ class SpikingNetwork:
         n = self.n
         V = self.V[:n].copy()
         thr = self.threshold[:n].copy()
+        v_min = self.v_min[:n].copy()
         with np.errstate(divide="ignore", invalid="ignore"):
             norm = np.where(thr > 0, V / thr, 0.0)
-        norm = np.clip(norm, -0.5, 1.0).tolist()
+        # Use v_min-aware lower bound for clipping so inhibition is visible
+        lower_bound = np.where(thr > 0, v_min / thr, -1.0)
+        lower_bound = np.maximum(lower_bound, -1.0)  # cap visual floor at -1.0
+        for i in range(n):
+            norm[i] = max(float(lower_bound[i]), min(1.0, float(norm[i])))
+        norm = [float(x) for x in norm]
+        raw_v = V.tolist()
         spikes = self.spike_count[:n].tolist()
         self.spike_count[:n] = 0
         return {
             "ids": list(self.ids),
             "potentials": norm,
+            "raw_v": raw_v,
             "spike_counts": spikes,
         }
 

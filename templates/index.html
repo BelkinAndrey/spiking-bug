@@ -18,10 +18,10 @@
             <input type="range" id="sim-hz" min="1" max="100" step="1" value="100">
             <span id="sim-hz-val">100</span> Hz
         </label>
-        <span class="stat">food: <span id="stat-food">0</span></span>
-        <span class="stat">hp: <span id="stat-hp">1.00</span></span>
-        <span class="stat">голод: <span id="stat-hunger">0.00</span></span>
-        <span class="stat">устал.: <span id="stat-fatigue">0.00</span></span>
+        <span class="stat bug-only">food: <span id="stat-food">0</span></span>
+        <span class="stat bug-only">hp: <span id="stat-hp">1.00</span></span>
+        <span class="stat bug-only">голод: <span id="stat-hunger">0.00</span></span>
+        <span class="stat bug-only">устал.: <span id="stat-fatigue">0.00</span></span>
         <span class="stat">t: <span id="stat-time">0.0</span> с</span>
     </div>
 </header>
@@ -30,9 +30,16 @@
 
     <section class="panel env-panel">
         <div class="panel-head">
-            <h2>1 · Среда агента</h2>
+            <div class="panel-title-row">
+                <h2>1 · Среда агента</h2>
+                <label class="task-select">Environment
+                    <select id="env-task">
+                        <option value="BUG">BUG</option>
+                    </select>
+                </label>
+            </div>
             <div class="toolbar">
-                <div class="tool-group" id="env-tool-group">
+                <div class="tool-group bug-only" id="env-tool-group">
                     <button class="tool-btn active" data-tool="select">↖ Курсор</button>
                     <button class="tool-btn" data-tool="food">🟢 Еда</button>
                     <button class="tool-btn" data-tool="threat">🔴 Угроза</button>
@@ -40,17 +47,24 @@
                     <button class="tool-btn" data-tool="agent">🐞 Агент</button>
                     <button class="tool-btn" data-tool="erase">✕ Стереть</button>
                 </div>
-                <button id="env-clear-food">очистить еду</button>
-                <button id="env-clear-threat">очистить угрозы</button>
-                <button id="env-clear-obs">очистить препятствия</button>
+                <button class="bug-only" id="env-clear-food">очистить еду</button>
+                <button class="bug-only" id="env-clear-threat">очистить угрозы</button>
+                <button class="bug-only" id="env-clear-obs">очистить препятствия</button>
                 <button id="env-reset-view" title="Сбросить зум">⊙ 1:1</button>
             </div>
         </div>
         <div class="env-wrap">
             <canvas id="env-canvas" width="1100" height="700"></canvas>
+            <div class="env-loading hidden" id="env-loading" aria-live="polite" aria-busy="true">
+                <div class="env-loading-box">
+                    <div class="env-spinner" aria-hidden="true"></div>
+                    <div class="env-loading-title" id="env-loading-title">Подготовка окружения</div>
+                    <div class="env-loading-subtitle" id="env-loading-subtitle">Gymnasium создает среду и сбрасывает эпизод</div>
+                </div>
+            </div>
         </div>
         <div class="env-tools">
-            <div class="slider-row">
+            <div class="slider-row bug-only" id="bug-world-controls">
                 <label>еды в среде
                     <input type="range" id="food-target" min="0" max="30" step="1" value="5">
                     <span id="food-target-val">5</span>
@@ -76,12 +90,20 @@
                     <span id="fatigue-decay-val">0.100</span>
                 </label>
             </div>
+            <div class="slider-row gym-only" id="gym-world-controls">
+                <label>частота среды
+                    <input type="range" id="gym-env-hz" min="1" max="240" step="1" value="30">
+                    <span id="gym-env-hz-val">30</span> Hz
+                </label>
+            </div>
             <div class="manual-row">
                 <span class="hint">Ручное управление мотонейронами (нажми и держи):</span>
-                <button class="motor" data-motor="forward">↑ Вперёд (W)</button>
-                <button class="motor" data-motor="backward">↓ Назад (S)</button>
-                <button class="motor" data-motor="left">↶ Влево (A)</button>
-                <button class="motor" data-motor="right">↷ Вправо (D)</button>
+                <span id="manual-motors">
+                    <button class="motor" data-motor="forward">Forward (W)</button>
+                    <button class="motor" data-motor="backward">Back (S)</button>
+                    <button class="motor" data-motor="left">Left (A)</button>
+                    <button class="motor" data-motor="right">Right (D)</button>
+                </span>
             </div>
         </div>
     </section>
@@ -185,8 +207,8 @@
 </dialog>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='environment.js') }}"></script>
-<script src="{{ url_for('static', filename='editor.js') }}"></script>
-<script src="{{ url_for('static', filename='app.js') }}"></script>
+<script src="{{ url_for('static', filename='environment.js', v='envswitch12') }}"></script>
+<script src="{{ url_for('static', filename='editor.js', v='envswitch12') }}"></script>
+<script src="{{ url_for('static', filename='app.js', v='envswitch12') }}"></script>
 </body>
 </html>

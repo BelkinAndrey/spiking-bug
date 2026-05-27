@@ -1,10 +1,11 @@
-"""2D environment with a bug agent, food, threats, obstacles, hunger, fatigue."""
+"""Agent environments: the original 2D BUG task plus Gymnasium adapters."""
 
 from __future__ import annotations
 
 import math
 import random
 from dataclasses import dataclass, field
+from typing import Any
 
 PI = math.pi
 TAU = 2 * PI
@@ -112,6 +113,8 @@ class Agent:
 
 
 class Environment:
+    task_id = "BUG"
+
     def __init__(self, width: int = 1100, height: int = 700):
         self.width = width
         self.height = height
@@ -134,6 +137,7 @@ class Environment:
         self.fatigue_action_gain = 0.02
         self.fatigue_decay = 0.10
         self._next_id = 1
+        self.last_reward = 0.0
 
     # --------------------------------------------------------------- object ops
     def _gen_id(self) -> int:
@@ -303,6 +307,7 @@ class Environment:
         # Hunger creeps up over time; fatigue decays toward 0
         a.hunger  = min(1.0, a.hunger  + self.hunger_rate  * dt)
         a.fatigue = max(0.0, a.fatigue - self.fatigue_decay * dt)
+        self.last_reward = float(events["ate"]) - float(events["hit"]) - 0.01 * a.hunger
 
         return events
 
@@ -346,6 +351,14 @@ class Environment:
             if   self._circle_free(nx, a.y, a.radius): a.x = nx
             elif self._circle_free(a.x, ny, a.radius): a.y = ny
 
+    def apply_motor_actions(self, active: dict[str, bool]) -> None:
+        self.apply_motor(
+            bool(active.get("motor_forward")),
+            bool(active.get("motor_backward")),
+            bool(active.get("motor_left")),
+            bool(active.get("motor_right")),
+        )
+
     # -------------------------------------------------------------- snapshots
     def snapshot(self) -> dict:
         a = self.agent
@@ -378,4 +391,218 @@ class Environment:
             "fatigue_action_gain": self.fatigue_action_gain,
             "fatigue_decay":       self.fatigue_decay,
             "sensor_arcs": {k: list(v) for k, v in SENSOR_ARCS.items()},
+            "task_id": self.task_id,
+            "kind": "bug",
+            "reward": self.last_reward,
         }
+
+
+class GymnasiumEnvironment:
+    """Small deterministic bridge from spiking motor neurons to Gymnasium tasks."""
+
+    task_id: str
+
+    def __init__(
+        self,
+        task_id: str,
+        gym_id: str,
+        action_names: list[str],
+        default_action: int = 0,
+    ):
+        try:
+            import gymnasium as gym
+        except ImportError as exc:
+            raise RuntimeError(
+                "Gymnasium is not installed. Install requirements.txt before using Gym tasks."
+            ) from exc
+
+        self.task_id = task_id
+        self.gym_id = gym_id
+        self.action_names = action_names
+        self.default_action = max(0, min(len(action_names) - 1, int(default_action)))
+        self.env = gym.make(gym_id)
+        self.obs: list[float] = []
+        self.last_reward = 0.0
+        self.episode_return = 0.0
+        self.episode_steps = 0
+        self.episode_index = 0
+        self.last_done = False
+        self.last_terminated = False
+        self.last_truncated = False
+        self.last_success = False
+        self.last_episode_steps = 0
+        self.last_episode_return = 0.0
+        self.best_steps = 0
+        self.best_return = float("-inf")
+        self.pending_action = self.default_action
+        self.last_action = self.default_action
+        self.position_neutral = -0.5
+        self.reset_agent()
+
+    def reset_agent(self) -> None:
+        obs, _info = self.env.reset()
+        self.obs = [float(x) for x in obs]
+        if self.task_id == "MountainCar" and self.obs:
+            self.position_neutral = self.obs[0]
+        self.last_reward = 0.0
+        self.episode_return = 0.0
+        self.episode_steps = 0
+        self.last_done = False
+        self.last_terminated = False
+        self.last_truncated = False
+        self.last_success = False
+        self.pending_action = self.default_action
+        self.last_action = self.default_action
+
+    def apply_motor_actions(self, active: dict[str, bool]) -> None:
+        active_indices = [
+            idx for idx, name in enumerate(self.action_names)
+            if active.get(f"motor_{name}", False)
+        ]
+        if active_indices:
+            self.pending_action = active_indices[-1]
+
+    def step(self, dt: float) -> dict[str, Any]:
+        del dt
+        self.last_action = self.pending_action
+        obs, reward, terminated, truncated, _info = self.env.step(self.pending_action)
+        self.obs = [float(x) for x in obs]
+        self.last_reward = float(reward)
+        self.episode_return += self.last_reward
+        self.episode_steps += 1
+        done = bool(terminated or truncated)
+        self.last_done = done
+        self.last_terminated = bool(terminated)
+        self.last_truncated = bool(truncated)
+        self.last_success = self._is_success(bool(terminated), bool(truncated))
+        if done:
+            completed_steps = self.episode_steps
+            completed_return = self.episode_return
+            self.last_episode_steps = completed_steps
+            self.last_episode_return = completed_return
+            self._update_records(completed_steps, completed_return)
+            self.episode_index += 1
+            reset_obs, _info = self.env.reset()
+            self.obs = [float(x) for x in reset_obs]
+            if self.task_id == "MountainCar" and self.obs:
+                self.position_neutral = self.obs[0]
+            self.episode_steps = 0
+            self.episode_return = 0.0
+        return {"reward": self.last_reward, "done": done}
+
+    def _is_success(self, terminated: bool, truncated: bool) -> bool:
+        if self.task_id == "MountainCar":
+            return terminated and not truncated
+        if self.task_id == "CartPole":
+            return truncated and not terminated
+        return terminated and not truncated
+
+    def _update_records(self, completed_steps: int, completed_return: float) -> None:
+        if completed_return > self.best_return:
+            self.best_return = completed_return
+
+        if self.task_id == "MountainCar":
+            if self.last_success and (self.best_steps <= 0 or completed_steps < self.best_steps):
+                self.best_steps = completed_steps
+            return
+
+        if self.best_steps <= 0 or completed_steps > self.best_steps:
+            self.best_steps = completed_steps
+
+    def resize(self, width: int, height: int) -> None:
+        del width, height
+
+    def add_food(self, x: float, y: float) -> None:
+        del x, y
+
+    def add_threat(self, x: float, y: float, radius: float = 12.0) -> None:
+        del x, y, radius
+
+    def add_obstacle(self, x: float, y: float, w: float, h: float) -> None:
+        del x, y, w, h
+
+    def remove_object(self, kind: str, oid: int) -> None:
+        del kind, oid
+
+    def clear_objects(self, kind: str | None = None) -> None:
+        del kind
+
+    def snapshot(self) -> dict:
+        task_key = {
+            "CartPole": "cartpole",
+            "MountainCar": "mountain_car",
+        }.get(self.task_id, self.task_id)
+        visual = self._visual_snapshot(task_key)
+        snap = {
+            "task": task_key,
+            "task_id": self.task_id,
+            "gym_id": self.gym_id,
+            "kind": "gym",
+            "width": 1100,
+            "height": 700,
+            "observation": list(self.obs),
+            "reward": self.last_reward,
+            "episode_return": self.episode_return,
+            "episode_steps": self.episode_steps,
+            "episode_index": self.episode_index,
+            "episode": self.episode_index,
+            "steps": self.episode_steps,
+            "last_episode_steps": self.last_episode_steps,
+            "last_episode_return": self.last_episode_return,
+            "best_steps": self.best_steps,
+            "best_score": self.best_return,
+            "done": self.last_done,
+            "terminated": self.last_terminated,
+            "truncated": self.last_truncated,
+            "success": self.last_success,
+            "done_reason": self._done_reason(),
+            "action": self.last_action,
+            "action_name": self.action_names[self.last_action],
+            "agent": {
+                "health": 1.0,
+                "hunger": 0.0,
+                "fatigue": 0.0,
+                "food_eaten": int(round(self.episode_return)),
+            },
+            "foods": [],
+            "threats": [],
+            "obstacles": [],
+        }
+        snap.update(visual)
+        return snap
+
+    def _visual_snapshot(self, task_key: str) -> dict:
+        if task_key == "cartpole":
+            x, _x_dot, theta, _theta_dot = (self.obs + [0.0, 0.0, 0.0, 0.0])[:4]
+            return {
+                "x": x,
+                "theta": theta,
+                "x_limit": 2.4,
+                "pole_half_len": 0.5,
+                "force_dir": -1 if self.last_action == 0 else 1,
+            }
+        if task_key == "mountain_car":
+            pos, vel = (self.obs + [-0.5, 0.0])[:2]
+            return {
+                "pos": pos,
+                "vel": vel,
+                "min_pos": -1.2,
+                "max_pos": 0.6,
+                "goal_pos": 0.5,
+                "action": self.last_action - 1,
+                "solved": self.last_success,
+            }
+        return {}
+
+    def _done_reason(self) -> str:
+        if not self.last_done:
+            return ""
+        if self.last_success:
+            return "goal" if self.task_id == "MountainCar" else "time limit"
+        if self.last_truncated:
+            return "time limit"
+        if self.last_terminated:
+            if self.task_id == "CartPole":
+                return "fallen"
+            return "terminated"
+        return "done"

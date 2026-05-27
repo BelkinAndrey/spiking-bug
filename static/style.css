@@ -40,6 +40,55 @@ button.motor {
 }
 button.motor:active, button.motor.held { background: #ff8a3a; color: #fff; }
 
+.task-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #9aa6c0;
+    font-size: 12px;
+}
+
+.task-select select {
+    background: #101622;
+    color: #e8eefc;
+    border: 1px solid #2b3548;
+    border-radius: 4px;
+    padding: 5px 8px;
+}
+
+#manual-motors {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+#load-list .load-section {
+    color: #7aa0ff;
+    cursor: default;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+body.gym-task .bug-only {
+    display: none !important;
+}
+
+.bug-only[hidden] {
+    display: none !important;
+}
+
+.gym-only {
+    display: none !important;
+}
+
+body.gym-task .gym-only {
+    display: flex !important;
+}
+
+.gym-only[hidden] {
+    display: none !important;
+}
+
 select, input[type=text], input[type=number], textarea {
     background: #1f2638;
     color: #e6ecff;
@@ -121,6 +170,13 @@ body.resizing-panels {
     margin: 0; font-size: 14px; font-weight: 600;
     color: #b6c2ff; letter-spacing: 0.4px; text-transform: uppercase;
 }
+.panel-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 auto;
+    min-width: max-content;
+}
 .toolbar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .toolbar label { font-size: 12px; color: #95a1b7; }
 
@@ -169,6 +225,54 @@ body.resizing-panels {
     flex: 0 0 auto;       /* preserve intrinsic pixel size */
     touch-action: none;
     border: 1px solid #2a3447;
+}
+.env-loading {
+    position: absolute;
+    inset: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 13, 20, 0.68);
+    backdrop-filter: blur(2px);
+    z-index: 5;
+    pointer-events: all;
+}
+.env-loading.hidden { display: none; }
+.env-loading-box {
+    min-width: 230px;
+    max-width: min(360px, calc(100% - 24px));
+    border: 1px solid #3a4867;
+    background: #121824;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+    border-radius: 6px;
+    padding: 16px 18px;
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    column-gap: 12px;
+    row-gap: 3px;
+    align-items: center;
+}
+.env-spinner {
+    grid-row: 1 / span 2;
+    width: 28px;
+    height: 28px;
+    border: 3px solid #2d3952;
+    border-top-color: #7aa0ff;
+    border-radius: 50%;
+    animation: env-spin 0.8s linear infinite;
+}
+.env-loading-title {
+    color: #e8eefc;
+    font-size: 14px;
+    font-weight: 700;
+}
+.env-loading-subtitle {
+    color: #9aa6c0;
+    font-size: 12px;
+    line-height: 1.35;
+}
+@keyframes env-spin {
+    to { transform: rotate(360deg); }
 }
 .env-tools {
     padding: 8px 12px;

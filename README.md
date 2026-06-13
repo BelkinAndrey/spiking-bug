@@ -295,6 +295,8 @@ sensor_x_neg получает max(0, -x)
 
 Файлы без `format_version` и `task` поддерживаются как старые BUG-сети. Дефолтные BUG-примеры в `saved_networks/` помечены `task: "BUG"` и не содержат `sensor_reward`.
 
+Подробная спецификация формата для сторонних генераторов находится в [`docs/network_format.md`](docs/network_format.md).
+
 ---
 
 ## Юзер-кейсы

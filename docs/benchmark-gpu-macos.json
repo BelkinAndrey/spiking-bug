@@ -1,0 +1,92 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python": "3.13.13",
+  "numpy": "2.5.4",
+  "pytorch": "2.14.1",
+  "drive": 0,
+  "seed": 42,
+  "dt_ms": 10,
+  "scope": "Synchronized Network.step including spike readback; excludes world, telemetry, browser",
+  "available_devices": [
+    {
+      "id": "cpu",
+      "label": "CPU \u00b7 NumPy",
+      "available": true,
+      "reason": ""
+    },
+    {
+      "id": "mps",
+      "label": "GPU \u00b7 Apple Metal",
+      "available": true,
+      "reason": ""
+    },
+    {
+      "id": "cuda:0",
+      "label": "GPU \u00b7 NVIDIA CUDA",
+      "available": false,
+      "reason": "\u041d\u0435\u0442 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e\u0433\u043e CUDA GPU \u0438\u043b\u0438 \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0430 \u0441\u0431\u043e\u0440\u043a\u0430 PyTorch \u0431\u0435\u0437 CUDA"
+    }
+  ],
+  "results": [
+    {
+      "device": "cpu",
+      "neurons": 1000,
+      "edges": 10000,
+      "steps": 200,
+      "median_ms": 0.03604199446272105,
+      "p95_ms": 0.12349971220828591,
+      "memory_mb": 0.4425048828125,
+      "spikes_per_neuron": 87.219
+    },
+    {
+      "device": "cpu",
+      "neurons": 10000,
+      "edges": 100000,
+      "steps": 200,
+      "median_ms": 0.24956199922598898,
+      "p95_ms": 1.1595252784900367,
+      "memory_mb": 4.425048828125,
+      "spikes_per_neuron": 87.049
+    },
+    {
+      "device": "cpu",
+      "neurons": 20000,
+      "edges": 200000,
+      "steps": 200,
+      "median_ms": 0.5006665014661849,
+      "p95_ms": 2.3820648741093464,
+      "memory_mb": 8.85009765625,
+      "spikes_per_neuron": 87.2167
+    },
+    {
+      "device": "mps",
+      "neurons": 1000,
+      "edges": 10000,
+      "steps": 200,
+      "median_ms": 0.4478750051930547,
+      "p95_ms": 0.5896690621739245,
+      "memory_mb": 0.55694580078125,
+      "spikes_per_neuron": 87.219
+    },
+    {
+      "device": "mps",
+      "neurons": 10000,
+      "edges": 100000,
+      "steps": 200,
+      "median_ms": 0.531208497704938,
+      "p95_ms": 0.6459166412241752,
+      "memory_mb": 5.5694580078125,
+      "spikes_per_neuron": 87.049
+    },
+    {
+      "device": "mps",
+      "neurons": 20000,
+      "edges": 200000,
+      "steps": 200,
+      "median_ms": 0.6820834969403222,
+      "p95_ms": 1.0282815885147953,
+      "memory_mb": 11.138916015625,
+      "spikes_per_neuron": 87.2167
+    }
+  ]
+}

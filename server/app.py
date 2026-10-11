@@ -28,6 +28,10 @@ def create_app(runtime):
     def state():
         return jsonify(runtime.snapshot())
 
+    @app.get("/api/devices")
+    def compute_devices():
+        return jsonify(runtime.compute_devices())
+
     @app.get("/api/export")
     def export():
         with runtime.lock:
@@ -79,8 +83,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--project", type=Path, default=Path("data/project.json"))
+    parser.add_argument("--ephemeral", action="store_true", help="Use an unsaved, fresh experiment")
     args = parser.parse_args()
-    runtime = Runtime(args.project)
+    runtime = Runtime(None if args.ephemeral else args.project)
     threading.Thread(target=runtime.loop, daemon=True).start()
     try:
         create_app(runtime).run(host="127.0.0.1", port=args.port, threaded=True, use_reloader=False)

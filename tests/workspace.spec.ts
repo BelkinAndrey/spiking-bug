@@ -5,7 +5,7 @@ test("two independent clients share bindings, topology, playback and persistence
   request,
 }) => {
   const original = await (
-    await request.get("http://127.0.0.1:8000/api/project")
+    await request.get("http://127.0.0.1:8010/api/project")
   ).json();
   const context = await browser.newContext();
   const env = await context.newPage(),
@@ -14,8 +14,8 @@ test("two independent clients share bindings, topology, playback and persistence
   env.on("pageerror", (e) => errors.push(e.message));
   editor.on("pageerror", (e) => errors.push(e.message));
   try {
-    await env.goto("http://127.0.0.1:5173");
-    await editor.goto("http://127.0.0.1:5174");
+    await env.goto("http://127.0.0.1:5183");
+    await editor.goto("http://127.0.0.1:5184");
     await expect(env.getByText("Синхронизировано")).toBeVisible();
     await expect(editor.getByText("Синхронизировано")).toBeVisible();
     await env.getByRole("button", { name: "Нейроны", exact: true }).click();
@@ -49,7 +49,7 @@ test("two independent clients share bindings, topology, playback and persistence
       env.getByText("Лабиринт создан", { exact: true }),
     ).toBeVisible();
     const state = await (
-      await request.get("http://127.0.0.1:8000/api/state")
+      await request.get("http://127.0.0.1:8010/api/state")
     ).json();
     expect(
       state.world.objects.filter((o: any) => o.kind === "obstacle").length,
@@ -58,7 +58,7 @@ test("two independent clients share bindings, topology, playback and persistence
       .getByRole("button", { name: "Сохранить", exact: true })
       .click();
     const exported = await (
-      await request.get("http://127.0.0.1:8000/api/export")
+      await request.get("http://127.0.0.1:8010/api/export")
     ).json();
     expect(exported.topology.ganglia[0].members.length).toBe(12);
     expect(exported.bindings.forward).toBe("explore");
@@ -74,9 +74,9 @@ test("two independent clients share bindings, topology, playback and persistence
     expect(errors).toEqual([]);
   } finally {
     const p = await (
-      await request.get("http://127.0.0.1:8000/api/project")
+      await request.get("http://127.0.0.1:8010/api/project")
     ).json();
-    await request.post("http://127.0.0.1:8000/api/command", {
+    await request.post("http://127.0.0.1:8010/api/command", {
       data: { action: "import", data: original, revision: p.revision },
     });
     await context.close();
@@ -87,7 +87,7 @@ test("mobile keeps controls accessible without horizontal overflow", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("http://127.0.0.1:5173");
+  await page.goto("http://127.0.0.1:5183");
   await expect(page.getByText("Синхронизировано")).toBeVisible();
   expect(
     await page.evaluate(
@@ -98,7 +98,7 @@ test("mobile keeps controls accessible without horizontal overflow", async ({
     path: "test-results/environment-mobile.png",
     fullPage: true,
   });
-  await page.goto("http://127.0.0.1:5174");
+  await page.goto("http://127.0.0.1:5184");
   await expect(page.getByText("Синхронизировано")).toBeVisible();
   await page.getByRole("button", { name: "Генератор", exact: true }).click();
   await expect(
@@ -119,12 +119,12 @@ test("canvas neuron creation, editing, connecting and world form submission", as
   page,
   request,
 }) => {
-  const api = "http://127.0.0.1:8000";
+  const api = "http://127.0.0.1:8010";
   const original = await (await request.get(api + "/api/project")).json();
   const project = async () =>
     await (await request.get(api + "/api/project")).json();
   try {
-    await page.goto("http://127.0.0.1:5174");
+    await page.goto("http://127.0.0.1:5184");
     await expect(page.getByText("Синхронизировано")).toBeVisible();
     await page
       .getByRole("button", { name: "Создать нейрон", exact: true })
@@ -221,7 +221,7 @@ test("canvas neuron creation, editing, connecting and world form submission", as
     await expect
       .poll(async () => (await project()).topology.groups.length)
       .toBe(original.topology.groups.length);
-    await page.goto("http://127.0.0.1:5173");
+    await page.goto("http://127.0.0.1:5183");
     await expect(page.getByText("Синхронизировано")).toBeVisible();
     expect(
       await page

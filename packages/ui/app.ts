@@ -3,20 +3,75 @@ import { Connection, download, escape, handle, toast } from "./api";
 import { Viewport } from "./canvas";
 import { EditorView } from "./editor";
 import { EnvironmentView } from "./environment";
-import type { Mode } from "./types";
+import type { Mode, ComputeDevices } from "./types";
 
 const logo = `<svg viewBox="0 0 32 36" fill="none" stroke="currentColor" stroke-width="1.4"><ellipse cx="16" cy="21" rx="7" ry="10"/><path d="M16 11v20M10 15 4 11M9 21H2M10 26 4 31M22 15l6-4M23 21h7M22 26l6 5M12 8l-3-5M20 8l3-5"/><circle cx="16" cy="9" r="4"/></svg>`;
 export async function start(mode: Mode) {
   const isEnv = mode === "environment";
   const app = document.getElementById("app")!;
   app.innerHTML = `<header class="topbar"><a class="brand" href="/"><span class="logo">${logo}</span> SPIKING BUG</a><nav class="topnav" aria-label="Приложения"><a href="http://127.0.0.1:5173" class="${isEnv ? "active" : ""}" ${isEnv ? "" : 'target="_blank" rel="noopener"'}>Окружение <span class="subtle">&nbsp;01</span></a><a href="http://127.0.0.1:5174" class="${!isEnv ? "active" : ""}" ${!isEnv ? "" : 'target="_blank" rel="noopener"'}>Коннектом <span class="subtle">&nbsp;02</span></a></nav><div class="topright"><span class="projectname" id="projectname"></span><span class="status offline" id="connection">Подключение</span><button id="help" aria-label="Справка">?</button></div></header>
-  <main class="workspace"><div class="heading"><div><div class="eyebrow">${isEnv ? "Embodied intelligence" : "Spiking neural architecture"} / Lab 01</div><h1>${isEnv ? "Живая среда" : "Редактор коннектома"}</h1><p>${isEnv ? "Создавайте мир. Наблюдайте, как нервная система управляет поведением." : "От отдельного импульса — к целой нервной системе."}</p></div><div class="heading-actions"><button id="import">↥ Импорт</button><button id="export">↧ Экспорт</button><button id="save">Сохранить</button></div></div>
-  <div class="layout"><div class="main-column"><div class="stage"><canvas id="scene" tabindex="0" aria-label="${isEnv ? "Арена жука. Инструменты построения слева, настройки мира справа." : "Схема нейронной сети. Доступный список нейронов во вкладке Нейроны справа."}"></canvas><div class="stage-head"><strong>${isEnv ? "FIELD / 01" : "CONNECTOME / 01"}</strong><span id="scene-meta">${isEnv ? "2 400 × 1 600 units" : "LIF · Δt 10 ms"}</span></div><span class="stage-badge" id="run-badge">PAUSED</span><div class="tools" id="tools" aria-label="Инструменты"></div><div class="stage-foot"><div class="legend">${isEnv ? '<span style="--color:#d3e7a3">Жук</span><span style="--color:#c3dc83">Пища</span><span style="--color:#d77e68">Угроза</span>' : '<span style="--color:#84bcca">Сенсоры</span><span style="--color:#c5d995">Интернейроны</span><span style="--color:#e3ba7e">Моторы</span>'}</div><span id="stage-hint"></span><span class="warning" id="sampling"></span></div><div class="camera-tools"><button id="zoom-out" aria-label="Уменьшить масштаб">−</button><button id="fit" title="Вписать всё" aria-label="Вписать всё">⊡</button><button id="zoom-in" aria-label="Увеличить масштаб">＋</button></div></div>
+  <main class="workspace"><div class="heading"><div><div class="eyebrow">${isEnv ? "Embodied intelligence" : "Spiking neural architecture"} / Lab 01</div><h1>${isEnv ? "Живая среда" : "Редактор коннектома"}</h1><p>${isEnv ? "Создавайте мир. Наблюдайте, как нервная система управляет поведением." : "От отдельного импульса — к целой нервной системе."}</p></div><div class="heading-actions"><button id="import">↥ Импорт</button><button id="export">↧ Экспорт</button><button id="save">Сохранить</button>${!isEnv ? '<button id="toggle-chart" aria-pressed="false">Скрыть график</button>' : ""}</div></div>
+  <div class="layout"><div class="main-column"><div class="stage"><canvas id="scene" tabindex="0" aria-label="${isEnv ? "Арена жука. Инструменты построения слева, настройки мира справа." : "Схема нейронной сети. Доступный список нейронов во вкладке Нейроны справа."}"></canvas><div class="stage-head"><strong>${isEnv ? "FIELD / 01" : "CONNECTOME / 01"}</strong><span id="scene-meta">${isEnv ? "2 400 × 1 600 units" : "LIF · Δt 10 ms"}</span></div><span class="stage-badge" id="run-badge">PAUSED</span><div class="tools" id="tools" aria-label="Инструменты"></div><div class="stage-foot"><div class="legend">${isEnv ? '<span style="--color:#d3e7a3">Жук</span><span style="--color:#c3dc83">Пища</span><span style="--color:#d77e68">Угроза</span>' : '<span style="--color:#84bcca">Сенсоры</span><span style="--color:#c5d995">Интернейроны</span><span style="--color:#e3ba7e">Моторы</span>'}</div><span id="stage-hint"></span><span class="warning" id="sampling"></span></div><div class="camera-tools">${!isEnv ? '<button id="fullscreen" aria-label="Полноэкранный режим" title="Полноэкранный режим">⛶</button><button id="toggle-inspector" title="Показать или скрыть инспектор" aria-label="Скрыть инспектор">☷</button>' : ""}<button id="zoom-out" aria-label="Уменьшить масштаб">−</button><button id="fit" title="Вписать всё" aria-label="Вписать всё">⊡</button><button id="zoom-in" aria-label="Увеличить масштаб">＋</button></div></div>
   ${isEnv ? '<div class="metrics"><div class="metric"><label>ЗДОРОВЬЕ</label><strong id="health">100</strong><small>%</small><div class="bar"><i id="health-bar" style="width:100%"></i></div></div><div class="metric"><label>ПОТРЕБЛЕНО ПИЩИ</label><strong id="eaten">0</strong><small>порций</small><div class="bar"><i style="width:0"></i></div></div><div class="metric"><label>ГОЛОД / УСТАЛОСТЬ</label><strong id="hunger">0 / 0</strong><small>%</small><div class="bar"><i id="hunger-bar" style="width:0"></i></div></div></div>' : ""}
   <div class="chart-wrap"><div class="chart-head"><span>Активность</span><select id="chart-group" aria-label="Группа графика"><option value="all">Вся сеть</option></select><span class="value mono" id="rate">0.0 Hz / нейрон</span><button id="csv" style="min-height:24px;padding:2px 7px;font-size:10px" title="Экспорт измерений">CSV ↧</button></div><canvas id="chart" role="img" aria-label="Средняя частота спайков за последние 30 секунд моделируемого времени"></canvas></div>
-  <div class="transport"><button class="primary" id="play">▶ Запустить</button><button id="step" title="Один такт 10 мс">▹ Такт</button><button id="reset" title="Сбросить активность сети и вернуть жука на старт">↺ Сброс</button><span class="label">Темп</span><select id="speed" aria-label="Темп симуляции"><option value="0.1">0.1×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="5">5×</option></select><span class="time mono" id="time">00:00.00</span></div></div><aside class="sidebar" id="sidebar" aria-label="Настройки"></aside></div>
-  <footer class="footer"><span id="stats">Ожидание сервера…</span><span id="performance"></span><span class="right" id="version">NUMPY / CPU &nbsp;·&nbsp; FIXED STEP 10 ms &nbsp;·&nbsp; v0.1</span></footer></main><div role="status" id="toast"></div><input class="file-input" id="file" type="file" accept=".json,application/json">`;
+  <div class="transport"><button class="primary" id="play">▶ Запустить</button><button id="step" title="Один такт 10 мс">▹ Такт</button><button id="reset" title="Сбросить активность сети и вернуть жука на старт">↺ Сброс</button><span class="label">Темп</span><select id="speed" aria-label="Темп симуляции"><option value="0.1">0.1×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="5">5×</option></select><label class="label" for="compute-device">Расчёт</label><select id="compute-device" aria-label="Устройство расчёта" disabled><option value="cpu">CPU · NumPy</option></select><span class="time mono" id="time">00:00.00</span><span id="compute-notice" role="status" hidden></span></div></div><aside class="sidebar" id="sidebar" aria-label="Настройки"></aside></div>
+  <footer class="footer"><span id="stats">Ожидание сервера…</span><span id="performance"></span><span class="right" id="version">FIXED STEP 10 ms &nbsp;·&nbsp; v0.1</span></footer></main><div role="status" id="toast"></div><input class="file-input" id="file" type="file" accept=".json,application/json">`;
   const api = new Connection();
+  const computeSelect = document.getElementById(
+    "compute-device",
+  ) as HTMLSelectElement;
+  const computeNotice = document.getElementById("compute-notice")!;
+  let switchingDevice = false;
+  let capabilities: ComputeDevices | undefined;
+  const updateDevice = () => {
+    if (switchingDevice) return;
+    const device =
+      api.state?.compute?.device ?? api.project?.compute?.device ?? "cpu";
+    computeSelect.value = device;
+    computeSelect.disabled = !capabilities || !api.online;
+    computeNotice.textContent = api.state?.compute?.notice ?? "";
+    computeNotice.hidden = !computeNotice.textContent;
+    computeSelect.title =
+      "Устройство расчёта нейросети. Среда остаётся на CPU. GPU не всегда быстрее: сравните ms / такт.\n" +
+      (capabilities?.devices
+        .filter((d) => !d.available)
+        .map((d) => `${d.label}: ${d.reason}`)
+        .join("\n") ?? "");
+  };
+  computeSelect.onchange = () => {
+    const device = computeSelect.value;
+    switchingDevice = true;
+    computeSelect.disabled = true;
+    computeNotice.textContent = "Перенос состояния…";
+    computeNotice.hidden = false;
+    handle(
+      api
+        .command("compute", { device })
+        .then(() => {
+          // Acknowledge the selected device before the next SSE frame arrives.
+          if (api.state) api.state.compute = { device, notice: "" };
+          toast("Устройство изменено. Состояние сети сохранено.");
+        })
+        .finally(() => {
+          switchingDevice = false;
+          updateDevice();
+        }),
+    );
+  };
+  async function loadDevices() {
+    const response = await fetch("/api/devices");
+    if (!response.ok)
+      throw new Error("Не удалось получить устройства; перезапустите сервер");
+    capabilities = (await response.json()) as ComputeDevices;
+    computeSelect.innerHTML = capabilities.devices
+      .map(
+        (d) =>
+          `<option value="${escape(d.id)}" ${d.available ? "" : "disabled"}>${escape(d.label)}${d.available ? "" : " · недоступен"}</option>`,
+      )
+      .join("");
+    updateDevice();
+  }
+
   const view = new Viewport(
     document.getElementById("scene") as HTMLCanvasElement,
     mode,
@@ -38,6 +93,63 @@ export async function start(mode: Mode) {
   document.getElementById("zoom-out")!.onclick = () => view.scale(0.8);
   document.getElementById("zoom-in")!.onclick = () => view.scale(1.25);
   document.getElementById("fit")!.onclick = () => panel.fit();
+  if (!isEnv) {
+    const layout = document.querySelector<HTMLElement>(".layout")!;
+    const chart = document.querySelector<HTMLElement>(".chart-wrap")!;
+    const toggle = document.getElementById("toggle-chart")!;
+    let hideChart = localStorage.getItem("spiking-bug.hide-chart") === "true";
+    const applyChart = () => {
+      chart.hidden = hideChart;
+      toggle.textContent = hideChart ? "Показать график" : "Скрыть график";
+      toggle.setAttribute("aria-pressed", String(hideChart));
+    };
+    applyChart();
+    toggle.onclick = () => {
+      hideChart = !hideChart;
+      localStorage.setItem("spiking-bug.hide-chart", String(hideChart));
+      applyChart();
+    };
+    const full = document.getElementById("fullscreen")!;
+    const updateFull = (enabled: boolean) => {
+      layout.classList.toggle("editor-fullscreen", enabled);
+      full.setAttribute(
+        "aria-label",
+        enabled ? "Выйти из полноэкранного режима" : "Полноэкранный режим",
+      );
+      full.title = enabled
+        ? "Выйти из полноэкранного режима (Esc)"
+        : "Полноэкранный режим";
+    };
+    full.onclick = async () => {
+      if (layout.classList.contains("editor-fullscreen")) {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        updateFull(false);
+      } else {
+        updateFull(true);
+        try {
+          await layout.requestFullscreen();
+        } catch {
+          /* Embedded browsers may deny native fullscreen; fixed viewport still works. */
+        }
+      }
+    };
+    document.addEventListener("fullscreenchange", () => {
+      updateFull(document.fullscreenElement === layout);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !document.fullscreenElement) updateFull(false);
+    });
+    document.getElementById("toggle-inspector")!.onclick = () => {
+      const hidden = layout.classList.toggle("inspector-hidden");
+      document
+        .getElementById("toggle-inspector")!
+        .setAttribute(
+          "aria-label",
+          hidden ? "Показать инспектор" : "Скрыть инспектор",
+        );
+    };
+  }
+
   document.getElementById("play")!.onclick = () =>
     handle(
       api.command(
@@ -129,6 +241,9 @@ export async function start(mode: Mode) {
   api.addEventListener("state", () => {
     const s = api.state;
     if (!s) return;
+    updateDevice();
+    document.getElementById("version")!.textContent =
+      `${s.stats.backend} · Δt 10 ms`;
     if (panel instanceof EditorView) panel.updateActivity();
     document.getElementById("play")!.textContent = s.running
       ? "Ⅱ Пауза"
@@ -167,11 +282,13 @@ export async function start(mode: Mode) {
     drawChart(api);
   });
   const motors: Record<string, boolean> = {};
+  const heldKeys = new Map<string, string>();
   let motorTimer: ReturnType<typeof setInterval> | undefined;
   function sendMotors() {
     handle(api.command("manual", motors, false));
   }
   function stopMotors() {
+    heldKeys.clear();
     for (const k in motors) delete motors[k];
     clearInterval(motorTimer);
     motorTimer = undefined;
@@ -187,10 +304,15 @@ export async function start(mode: Mode) {
           KeyS: "backward",
           KeyA: "left",
           KeyD: "right",
+          ArrowUp: "forward",
+          ArrowDown: "backward",
+          ArrowLeft: "left",
+          ArrowRight: "right",
         } as Record<string, string>
       )[e.code];
-      if (channel) {
+      if (channel && api.project && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
+        heldKeys.set(e.code, channel);
         motors[channel] = true;
         if (!motorTimer) {
           sendMotors();
@@ -205,10 +327,15 @@ export async function start(mode: Mode) {
           KeyS: "backward",
           KeyA: "left",
           KeyD: "right",
+          ArrowUp: "forward",
+          ArrowDown: "backward",
+          ArrowLeft: "left",
+          ArrowRight: "right",
         } as Record<string, string>
       )[e.code];
-      if (channel) {
-        delete motors[channel];
+      if (channel && heldKeys.has(e.code)) {
+        heldKeys.delete(e.code);
+        if (![...heldKeys.values()].includes(channel)) delete motors[channel];
         sendMotors();
         if (!Object.keys(motors).length) stopMotors();
       }
@@ -221,6 +348,7 @@ export async function start(mode: Mode) {
   document.getElementById("chart-group")!.onchange = () => drawChart(api);
   try {
     await api.init();
+    handle(loadDevices());
     requestAnimationFrame(() => {
       view.resize();
       if (!localStorage.getItem("spiking-bug.camera." + mode)) panel.fit();

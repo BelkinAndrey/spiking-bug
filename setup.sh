@@ -31,6 +31,9 @@ fi
 .venv/bin/python -c 'import sys; sys.exit("В .venv нужен Python 3.10+. Переименуйте её и повторите установку.") if sys.version_info < (3, 10) else None'
 .venv/bin/python -m pip install --upgrade pip
 .venv/bin/python -m pip install -r requirements.txt
+if [[ "${1:-}" == "--gpu" ]]; then
+    .venv/bin/python -m pip install -r requirements-gpu.txt
+fi
 if ! command -v node >/dev/null 2>&1; then
     echo "Установите Node.js 22.12+ или 24 LTS и повторите ./setup.sh" >&2
     exit 1

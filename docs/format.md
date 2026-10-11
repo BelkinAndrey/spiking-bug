@@ -75,11 +75,14 @@ full-topology edits. Invalid inputs return HTTP 400, unexpected errors HTTP 500.
 |---|---|---|
 | `control` | `mode: play / pause / step / reset` | Shared simulation controls; no revision needed |
 | `speed` | `value: 0.1…5` | Wall-clock tempo; no revision needed |
-| `manual` | `forward/backward/left/right: bool` | External motor current, expires after 350 ms |
+| `compute` | `device: cpu / mps / cuda:N` | Switch kernel while preserving full runtime state; requires current revision |
+| `manual` | `forward/backward/left/right: bool` | Direct movement overriding motor spikes while held; also works paused; expires after 350 ms |
 | `inject` | `id, current` | One external input on next executed step |
 | `topology` | full v3 topology | Validated topology replacement |
 | `positions` | `positions: [{id,x,y}]` | Geometry-only edits, preserves pending currents |
-| `ganglion` | `id,label,x,y,radius,count,density,excitatory,mode,weight,delay,seed,neuron` | Append seeded generated group |
+| `move_ganglion` | `id,dx,dy` | Translate group and every explicit member, preserving neural runtime state |
+| `ganglion` | `id,label,x,y,radius,count,density,max_distance,excitatory,mode,weight,delay,seed,neuron` | Append seeded generated group; distance 0 means unlimited |
+| `connect_ganglia` | `id,source,target,kind,density,weight,delay,seed,max_distance` | Seeded directed member-to-member edges; returns `added_synapses`; distance 0 means unlimited |
 | `bindings` | channel → neuron ID or empty string | Replace all bindings |
 | `world_config` | subset of world config | Validate and update settings |
 | `place` | `kind,x,y` and `w,h` for obstacle | Add one world object |
@@ -96,6 +99,15 @@ full-topology edits. Invalid inputs return HTTP 400, unexpected errors HTTP 500.
 world, activity, rolling rate history, revision and measured kernel/world step
 latency. `GET /api/state` provides a single snapshot. There is no client-specific
 consumption of cumulative spike counts.
+
+`GET /api/devices` returns `devices: [{id,label,available,reason}]`, active `device`
+and a startup fallback `notice`. Discovery describes the server's hardware, not
+the browser's. Unavailable selections are rejected without changing the kernel.
+Snapshots contain `compute: {device,notice}` and the actual `stats.backend`.
+Saved experiments include `compute: {device}` for restart preference; import into
+a running server keeps that server's selected device. Startup on an unavailable
+saved device falls back to CPU with a visible notice. A normal CPU installation
+does not require PyTorch; install `requirements-gpu.txt` and restart to add GPU.
 
 ## Script-generated worlds
 

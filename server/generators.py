@@ -10,6 +10,7 @@ def ganglion(net, params):
     count = number(params.get("count", 40), "count", 1, 2000, True)
     radius = number(params.get("radius", 180), "radius", 30, 5000)
     density = number(params.get("density", 0.08), "density", 0, 1)
+    max_distance = number(params.get("max_distance", 0), "max_distance", 0, 300000)
     fraction = number(params.get("excitatory", 0.8), "excitatory", 0, 1)
     weight = number(params.get("weight", 0.5), "weight", 0, 100)
     delay = number(params.get("delay", 2), "delay", 1, 256, True)
@@ -49,6 +50,8 @@ def ganglion(net, params):
             if j >= count:
                 break
             if j == i:
+                continue
+            if max_distance and math.hypot(n["x"] - ns[j]["x"], n["y"] - ns[j]["y"]) > max_distance:
                 continue
             sign = (
                 1
@@ -136,3 +139,51 @@ def maze(width, height, cols=12, rows=8, seed=42):
                     )
                 )
     return walls, dict(x=cellw / 2, y=cellh / 2, heading=0.0)
+
+
+def connect_ganglia(net, params):
+    """Generate directed neuron-to-neuron edges, excluding existing same-kind pairs."""
+    groups = {g["id"]: g for g in net["ganglia"]}
+    source, target = params.get("source"), params.get("target")
+    if source not in groups or target not in groups or source == target:
+        raise ValueError("Выберите два разных существующих ганглия")
+    density = number(params.get("density", 0.1), "density", 0, 1)
+    weight = number(params.get("weight", 0.5), "weight", -10000, 10000)
+    delay = number(params.get("delay", 1), "delay", 1, 256, True)
+    seed = number(params.get("seed", 42), "seed", 0, 2147483647, True)
+    max_distance = number(params.get("max_distance", 0), "max_distance", 0, 300000)
+    kind = params.get("kind", "direct")
+    if kind not in ("direct", "mod_exc", "mod_inh"):
+        raise ValueError("Неизвестный тип связи")
+    prefix = identifier(params.get("id", f"projection_{seed}"))
+    rng = random.Random(seed)
+    nodes = {n["id"]: n for n in net["neurons"]}
+    pairs = {(s["source"], s["target"], s["kind"]) for s in net["synapses"]}
+    used_ids = {s["id"] for s in net["synapses"]}
+    additions = []
+    destinations = groups[target]["members"]
+    for i, src in enumerate(groups[source]["members"]):
+        j = -1
+        while density > 0:
+            j += 1 if density == 1 else 1 + int(math.log1p(-rng.random()) / math.log1p(-density))
+            if j >= len(destinations):
+                break
+            dst = destinations[j]
+            if (src, dst, kind) in pairs:
+                continue
+            a, b = nodes[src], nodes[dst]
+            if max_distance and math.hypot(a["x"] - b["x"], a["y"] - b["y"]) > max_distance:
+                continue
+            w = weight
+            if kind == "direct" and a["polarity"] != "mixed":
+                w = abs(weight) * (1 if a["polarity"] == "exc" else -1)
+            sid = f"{prefix}.{i}.{j}"
+            suffix = len(used_ids)
+            while sid in used_ids:
+                sid = f"{prefix}.{suffix}"
+                suffix += 1
+            used_ids.add(sid)
+            additions.append(dict(id=sid, source=src, target=dst, kind=kind, weight=w, delay=delay))
+            if len(net["synapses"]) + len(additions) > MAX_SYNAPSES:
+                raise ValueError("Слишком много связей; уменьшите плотность")
+    return topology({**net, "synapses": net["synapses"] + additions})

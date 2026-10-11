@@ -6,6 +6,10 @@ from .schema import DT, KINDS
 
 
 class Network:
+    device = "cpu"
+    backend = "NumPy · CPU"
+    state_fields = ("V", "sensitivity", "refr", "spikes", "total", "queue")
+
     def __init__(self, topology, seed=42):
         self.topology = topology
         ns = topology["neurons"]
@@ -29,7 +33,9 @@ class Network:
             [[np.exp(-DT / n["mod_tau_exc"]), np.exp(-DT / n["mod_tau_inh"])] for n in ns],
             dtype=np.float32,
         ).reshape(self.n, 2)
-        self.reset_mode = np.array([("reset", "retain").index(n["reset_mode"]) for n in ns])
+        self.reset_mode = np.array(
+            [("reset", "retain").index(n["reset_mode"]) for n in ns], dtype=np.int8
+        )
         self.V = np.zeros(self.n, np.float32)
         self.sensitivity = np.ones((self.n, 2), np.float32)
         self.refr = np.zeros(self.n, np.int32)
@@ -110,3 +116,13 @@ class Network:
     @property
     def memory_bytes(self):
         return sum(v.nbytes for v in vars(self).values() if isinstance(v, np.ndarray))
+
+    def host_values(self, key, limit=None):
+        value = getattr(self, key)
+        return value.copy() if limit is None else value[:limit].copy()
+
+    def set_values(self, key, value):
+        getattr(self, key)[:] = value
+
+    def synchronize(self):
+        pass

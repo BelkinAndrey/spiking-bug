@@ -1,0 +1,1599 @@
+{
+  "timestamp_utc": "2026-10-11T17:29:05.683412+00:00",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python": "3.13.13",
+  "numpy": "2.5.4",
+  "pytorch": "2.14.1",
+  "source_sha256": {
+    "server/engine.py": "d6b1dac7f78ef9ab4c30c5c1798f0b521ed9d8c80967e4dc776d89b7a8e60804",
+    "server/gpu.py": "b0282085fb969b705ca87ae4632e889199fa5331c5522e6b14578594fdf978ae",
+    "scripts/benchmark_matrix.py": "407e0f026336d7eac19b7b965cdd4d3c3d9bb8a114e2bf1dd9017fc34f37f60a"
+  },
+  "gpu": "mps",
+  "seed": 42,
+  "dt_ms": 10,
+  "steps": 1000,
+  "warmup": 150,
+  "repeats": 3,
+  "extended": true,
+  "scope": "Synchronized Network.step with external-input upload and spike readback; excludes topology compilation, world, SSE, rendering, and OS power measurement",
+  "protocols": {
+    "active": "bias=0.05, leak=0.02, refractory=2, retain potential",
+    "sparse": "bias=0, threshold=100, leak=0.02, refractory=2, reset potential; constant input 125 into 1% of neurons chosen uniformly without replacement, seed=123; high threshold prevents recurrent avalanches"
+  },
+  "order": "Alternate CPU/GPU within each repetition; each device starts from identical seed/state",
+  "cases": [
+    {
+      "activity": "sparse",
+      "neurons": 10000,
+      "fanout": 10,
+      "edges": 100000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 0.17676511699999997,
+          "median_ms": 0.1549375,
+          "p95_ms": 0.24335174999999998,
+          "p99_ms": 0.26730075,
+          "max_ms": 0.354875,
+          "steps_per_second": 5657.224779253252,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 4.425048828125,
+          "counts_sha256": "ade27e05f5deaaaf5a3b84dc85944c05f099bb252e6a22a6683020d32d6b1111"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 0.9266575789999999,
+          "median_ms": 0.768625,
+          "p95_ms": 1.8142985499999995,
+          "p99_ms": 3.4725829099999985,
+          "max_ms": 4.761375,
+          "steps_per_second": 1079.147273666231,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 5.5694580078125,
+          "counts_sha256": "ade27e05f5deaaaf5a3b84dc85944c05f099bb252e6a22a6683020d32d6b1111"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 0.803515899,
+          "median_ms": 0.7260415,
+          "p95_ms": 1.3050645499999995,
+          "p99_ms": 2.20076967,
+          "max_ms": 2.31575,
+          "steps_per_second": 1244.5304458126222,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 5.5694580078125,
+          "counts_sha256": "ade27e05f5deaaaf5a3b84dc85944c05f099bb252e6a22a6683020d32d6b1111"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 0.188799003,
+          "median_ms": 0.16487449999999998,
+          "p95_ms": 0.26392115,
+          "p99_ms": 0.29604684,
+          "max_ms": 0.422208,
+          "steps_per_second": 5296.638139556278,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 4.425048828125,
+          "counts_sha256": "ade27e05f5deaaaf5a3b84dc85944c05f099bb252e6a22a6683020d32d6b1111"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 0.20933332200000002,
+          "median_ms": 0.1855835,
+          "p95_ms": 0.28382499999999994,
+          "p99_ms": 0.31051166999999996,
+          "max_ms": 0.361334,
+          "steps_per_second": 4777.070322325463,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 4.425048828125,
+          "counts_sha256": "ade27e05f5deaaaf5a3b84dc85944c05f099bb252e6a22a6683020d32d6b1111"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 1.0069156719999999,
+          "median_ms": 0.9109585,
+          "p95_ms": 1.8410868499999973,
+          "p99_ms": 2.59036184,
+          "max_ms": 2.74175,
+          "steps_per_second": 993.1318260383578,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 5.5694580078125,
+          "counts_sha256": "ade27e05f5deaaaf5a3b84dc85944c05f099bb252e6a22a6683020d32d6b1111"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 0.19163248066666666,
+          "median_ms": 0.17552099999999998,
+          "p95_ms": 0.27045804999999995,
+          "p99_ms": 0.3008464999999997,
+          "steps_per_second": 5218.322053344604,
+          "run_mean_min_ms": 0.17676511699999997,
+          "run_mean_max_ms": 0.20933332200000002,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 4.425048828125
+        },
+        "mps": {
+          "mean_ms": 0.9123630500000001,
+          "median_ms": 0.7974375,
+          "p95_ms": 1.712793399999999,
+          "p99_ms": 2.654353419999999,
+          "steps_per_second": 1096.0549092820013,
+          "run_mean_min_ms": 0.803515899,
+          "run_mean_max_ms": 1.0069156719999999,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 5.5694580078125
+        }
+      },
+      "gpu_speedup": 0.21003972121258818
+    },
+    {
+      "activity": "sparse",
+      "neurons": 20000,
+      "fanout": 10,
+      "edges": 200000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 0.492571102,
+          "median_ms": 0.44443699999999997,
+          "p95_ms": 0.6844124999999999,
+          "p99_ms": 0.77772866,
+          "max_ms": 1.087792,
+          "steps_per_second": 2030.1637589774807,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 8.85009765625,
+          "counts_sha256": "08ac5b4a8c86dcc9cafd07315e379a7fa4dcc03aad32a42ddc2841af0c538c48"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 0.990475739,
+          "median_ms": 0.8934795,
+          "p95_ms": 1.8090392499999997,
+          "p99_ms": 2.4603663399999998,
+          "max_ms": 2.591625,
+          "steps_per_second": 1009.6158448157609,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 11.138916015625,
+          "counts_sha256": "08ac5b4a8c86dcc9cafd07315e379a7fa4dcc03aad32a42ddc2841af0c538c48"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 1.002227584,
+          "median_ms": 0.904104,
+          "p95_ms": 1.836071449999999,
+          "p99_ms": 2.43449617,
+          "max_ms": 2.522333,
+          "steps_per_second": 997.7773671014827,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 11.138916015625,
+          "counts_sha256": "08ac5b4a8c86dcc9cafd07315e379a7fa4dcc03aad32a42ddc2841af0c538c48"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 0.465867745,
+          "median_ms": 0.416854,
+          "p95_ms": 0.6466753,
+          "p99_ms": 0.700185,
+          "max_ms": 0.880333,
+          "steps_per_second": 2146.5319518954893,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 8.85009765625,
+          "counts_sha256": "08ac5b4a8c86dcc9cafd07315e379a7fa4dcc03aad32a42ddc2841af0c538c48"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 0.488444199,
+          "median_ms": 0.4408745,
+          "p95_ms": 0.67451935,
+          "p99_ms": 0.72338625,
+          "max_ms": 1.058875,
+          "steps_per_second": 2047.3167703645918,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 8.85009765625,
+          "counts_sha256": "08ac5b4a8c86dcc9cafd07315e379a7fa4dcc03aad32a42ddc2841af0c538c48"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 0.9952795170000001,
+          "median_ms": 0.9026045,
+          "p95_ms": 1.6819392999999956,
+          "p99_ms": 2.45234608,
+          "max_ms": 2.548791,
+          "steps_per_second": 1004.7428716449712,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 11.138916015625,
+          "counts_sha256": "08ac5b4a8c86dcc9cafd07315e379a7fa4dcc03aad32a42ddc2841af0c538c48"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 0.4822943486666667,
+          "median_ms": 0.43072900000000003,
+          "p95_ms": 0.66779615,
+          "p99_ms": 0.74516741,
+          "steps_per_second": 2073.4225950699265,
+          "run_mean_min_ms": 0.465867745,
+          "run_mean_max_ms": 0.492571102,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 8.85009765625
+        },
+        "mps": {
+          "mean_ms": 0.99599428,
+          "median_ms": 0.9005209999999999,
+          "p95_ms": 1.815699649999998,
+          "p99_ms": 2.45471316,
+          "steps_per_second": 1004.0218303261742,
+          "run_mean_min_ms": 0.990475739,
+          "run_mean_max_ms": 1.002227584,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 11.138916015625
+        }
+      },
+      "gpu_speedup": 0.4842340547042767
+    },
+    {
+      "activity": "sparse",
+      "neurons": 30000,
+      "fanout": 10,
+      "edges": 300000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 0.66585025,
+          "median_ms": 0.583062,
+          "p95_ms": 0.92807115,
+          "p99_ms": 1.07610899,
+          "max_ms": 1.169208,
+          "steps_per_second": 1501.8391898178306,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 13.275146484375,
+          "counts_sha256": "434405f6a86cdafe0f377b7a905ab342cef9c09e807f4f62fe2fb1ac5b8f16f4"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 1.15151199,
+          "median_ms": 1.0413335,
+          "p95_ms": 2.1341955499999994,
+          "p99_ms": 2.59301791,
+          "max_ms": 2.704958,
+          "steps_per_second": 868.4234369109782,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 16.7083740234375,
+          "counts_sha256": "434405f6a86cdafe0f377b7a905ab342cef9c09e807f4f62fe2fb1ac5b8f16f4"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 1.2189478329999996,
+          "median_ms": 1.096042,
+          "p95_ms": 2.15214935,
+          "p99_ms": 2.7300275,
+          "max_ms": 2.859625,
+          "steps_per_second": 820.3796527853546,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 16.7083740234375,
+          "counts_sha256": "434405f6a86cdafe0f377b7a905ab342cef9c09e807f4f62fe2fb1ac5b8f16f4"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 0.746286292,
+          "median_ms": 0.6852705,
+          "p95_ms": 1.0417288500000002,
+          "p99_ms": 1.1729320899999998,
+          "max_ms": 1.347625,
+          "steps_per_second": 1339.9683348330884,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 13.275146484375,
+          "counts_sha256": "434405f6a86cdafe0f377b7a905ab342cef9c09e807f4f62fe2fb1ac5b8f16f4"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 0.6799260959999999,
+          "median_ms": 0.6178954999999999,
+          "p95_ms": 0.9415110499999998,
+          "p99_ms": 1.07107908,
+          "max_ms": 1.227667,
+          "steps_per_second": 1470.7480796559987,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 13.275146484375,
+          "counts_sha256": "434405f6a86cdafe0f377b7a905ab342cef9c09e807f4f62fe2fb1ac5b8f16f4"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 1.115833777,
+          "median_ms": 1.016313,
+          "p95_ms": 1.9997478999999991,
+          "p99_ms": 2.58652166,
+          "max_ms": 2.75,
+          "steps_per_second": 896.1908311187465,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 16.7083740234375,
+          "counts_sha256": "434405f6a86cdafe0f377b7a905ab342cef9c09e807f4f62fe2fb1ac5b8f16f4"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 0.6973542126666668,
+          "median_ms": 0.6273545,
+          "p95_ms": 0.9796413499999996,
+          "p99_ms": 1.115701999999999,
+          "steps_per_second": 1433.9914807082366,
+          "run_mean_min_ms": 0.66585025,
+          "run_mean_max_ms": 0.746286292,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 13.275146484375
+        },
+        "mps": {
+          "mean_ms": 1.1620978666666666,
+          "median_ms": 1.049646,
+          "p95_ms": 2.1177954999999953,
+          "p99_ms": 2.648672,
+          "steps_per_second": 860.5127233116568,
+          "run_mean_min_ms": 1.115833777,
+          "run_mean_max_ms": 1.2189478329999996,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 16.7083740234375
+        }
+      },
+      "gpu_speedup": 0.6000821726546497
+    },
+    {
+      "activity": "sparse",
+      "neurons": 50000,
+      "fanout": 10,
+      "edges": 500000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 1.146519436,
+          "median_ms": 1.008708,
+          "p95_ms": 1.6382729,
+          "p99_ms": 1.8238791699999999,
+          "max_ms": 2.130584,
+          "steps_per_second": 872.2050133653382,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 22.125244140625,
+          "counts_sha256": "4c4baf1ecbbd742ca73f309d74a141b5ab39e33c2f86aa9869f18ec597e5433d"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 1.5618516,
+          "median_ms": 1.424896,
+          "p95_ms": 2.8480889499999997,
+          "p99_ms": 3.06385483,
+          "max_ms": 3.278,
+          "steps_per_second": 640.2656948970056,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 27.8472900390625,
+          "counts_sha256": "4c4baf1ecbbd742ca73f309d74a141b5ab39e33c2f86aa9869f18ec597e5433d"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 1.6702469350000002,
+          "median_ms": 1.5174995,
+          "p95_ms": 3.04325835,
+          "p99_ms": 3.23167408,
+          "max_ms": 3.693375,
+          "steps_per_second": 598.7138662224218,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 27.8472900390625,
+          "counts_sha256": "4c4baf1ecbbd742ca73f309d74a141b5ab39e33c2f86aa9869f18ec597e5433d"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 1.1047699910000002,
+          "median_ms": 0.9583955,
+          "p95_ms": 1.5577375,
+          "p99_ms": 1.75420117,
+          "max_ms": 2.084875,
+          "steps_per_second": 905.1657884867366,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 22.125244140625,
+          "counts_sha256": "4c4baf1ecbbd742ca73f309d74a141b5ab39e33c2f86aa9869f18ec597e5433d"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 0.999536895,
+          "median_ms": 0.8754375,
+          "p95_ms": 1.39739585,
+          "p99_ms": 1.56650649,
+          "max_ms": 1.738584,
+          "steps_per_second": 1000.4633195656074,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 22.125244140625,
+          "counts_sha256": "4c4baf1ecbbd742ca73f309d74a141b5ab39e33c2f86aa9869f18ec597e5433d"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 1.511513341,
+          "median_ms": 1.3825,
+          "p95_ms": 2.7853056499999997,
+          "p99_ms": 3.0498805,
+          "max_ms": 3.43625,
+          "steps_per_second": 661.5886032063809,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 27.8472900390625,
+          "counts_sha256": "4c4baf1ecbbd742ca73f309d74a141b5ab39e33c2f86aa9869f18ec597e5433d"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 1.083608774,
+          "median_ms": 0.9566665,
+          "p95_ms": 1.5782347499999996,
+          "p99_ms": 1.75516642,
+          "steps_per_second": 922.8422877277293,
+          "run_mean_min_ms": 0.999536895,
+          "run_mean_max_ms": 1.146519436,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 22.125244140625
+        },
+        "mps": {
+          "mean_ms": 1.5812039586666669,
+          "median_ms": 1.440437,
+          "p95_ms": 2.8645246999999996,
+          "p99_ms": 3.160251339999999,
+          "steps_per_second": 632.4294816737236,
+          "run_mean_min_ms": 1.511513341,
+          "run_mean_max_ms": 1.6702469350000002,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 27.8472900390625
+        }
+      },
+      "gpu_speedup": 0.6853061352779191
+    },
+    {
+      "activity": "sparse",
+      "neurons": 100000,
+      "fanout": 10,
+      "edges": 1000000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 2.3141418139999996,
+          "median_ms": 2.0251665,
+          "p95_ms": 3.3996309499999997,
+          "p99_ms": 3.7032275799999996,
+          "max_ms": 4.061958,
+          "steps_per_second": 432.12563463061826,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 44.25048828125,
+          "counts_sha256": "4c7b1db19bfc17b22f211cb2bee8ff930b8499d344314caf3e108cc2cac0f274"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 3.022316511,
+          "median_ms": 2.8337505,
+          "p95_ms": 4.64019315,
+          "p99_ms": 5.10436992,
+          "max_ms": 9.461834,
+          "steps_per_second": 330.8720302325741,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 55.694580078125,
+          "counts_sha256": "4c7b1db19bfc17b22f211cb2bee8ff930b8499d344314caf3e108cc2cac0f274"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 4.670101681,
+          "median_ms": 4.141479,
+          "p95_ms": 9.9520181,
+          "p99_ms": 10.47216083,
+          "max_ms": 12.38525,
+          "steps_per_second": 214.1281000515329,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 55.694580078125,
+          "counts_sha256": "4c7b1db19bfc17b22f211cb2bee8ff930b8499d344314caf3e108cc2cac0f274"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 1.8810975369999998,
+          "median_ms": 1.6211250000000001,
+          "p95_ms": 2.76076845,
+          "p99_ms": 3.0908037499999996,
+          "max_ms": 3.417,
+          "steps_per_second": 531.6045448631089,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 44.25048828125,
+          "counts_sha256": "4c7b1db19bfc17b22f211cb2bee8ff930b8499d344314caf3e108cc2cac0f274"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 2.4147569060000005,
+          "median_ms": 2.1890834999999997,
+          "p95_ms": 3.6477806,
+          "p99_ms": 3.97363482,
+          "max_ms": 4.586834,
+          "steps_per_second": 414.1203603208578,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 44.25048828125,
+          "counts_sha256": "4c7b1db19bfc17b22f211cb2bee8ff930b8499d344314caf3e108cc2cac0f274"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 6.278686869,
+          "median_ms": 5.6623125,
+          "p95_ms": 9.863008649999996,
+          "p99_ms": 10.63194483,
+          "max_ms": 11.708291,
+          "steps_per_second": 159.26897150060756,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 55.694580078125,
+          "counts_sha256": "4c7b1db19bfc17b22f211cb2bee8ff930b8499d344314caf3e108cc2cac0f274"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 2.2033320856666667,
+          "median_ms": 2.0169585,
+          "p95_ms": 3.4358191000000002,
+          "p99_ms": 3.8388119899999995,
+          "steps_per_second": 453.8580482285438,
+          "run_mean_min_ms": 1.8810975369999998,
+          "run_mean_max_ms": 2.4147569060000005,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 44.25048828125
+        },
+        "mps": {
+          "mean_ms": 4.657035020333334,
+          "median_ms": 4.190521,
+          "p95_ms": 9.505299399999998,
+          "p99_ms": 10.46874066,
+          "steps_per_second": 214.7288984587502,
+          "run_mean_min_ms": 3.022316511,
+          "run_mean_max_ms": 6.278686869,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 55.694580078125
+        }
+      },
+      "gpu_speedup": 0.47311907169402395
+    },
+    {
+      "activity": "sparse",
+      "neurons": 200000,
+      "fanout": 10,
+      "edges": 2000000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 3.966061081,
+          "median_ms": 3.333604,
+          "p95_ms": 5.807932699999999,
+          "p99_ms": 6.22721892,
+          "max_ms": 6.855667,
+          "steps_per_second": 252.13933410926205,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 88.5009765625,
+          "counts_sha256": "e8c04080393d0e0b8f86d2f9f1115e7ac0c7e5792719df9c6cf9d3926213e062"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 7.738675212,
+          "median_ms": 7.733041500000001,
+          "p95_ms": 11.563942299999999,
+          "p99_ms": 12.683075839999999,
+          "max_ms": 13.974833,
+          "steps_per_second": 129.2210840492888,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 111.38916015625,
+          "counts_sha256": "e8c04080393d0e0b8f86d2f9f1115e7ac0c7e5792719df9c6cf9d3926213e062"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 7.217252236,
+          "median_ms": 6.6754999999999995,
+          "p95_ms": 10.83509405,
+          "p99_ms": 12.35685009,
+          "max_ms": 15.542625,
+          "steps_per_second": 138.556886651675,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 111.38916015625,
+          "counts_sha256": "e8c04080393d0e0b8f86d2f9f1115e7ac0c7e5792719df9c6cf9d3926213e062"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 5.1424146209999995,
+          "median_ms": 4.583875,
+          "p95_ms": 8.106541649999999,
+          "p99_ms": 9.07722475,
+          "max_ms": 9.54425,
+          "steps_per_second": 194.46117703467849,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 88.5009765625,
+          "counts_sha256": "e8c04080393d0e0b8f86d2f9f1115e7ac0c7e5792719df9c6cf9d3926213e062"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 5.159548504,
+          "median_ms": 4.382604000000001,
+          "p95_ms": 7.33069375,
+          "p99_ms": 7.61746616,
+          "max_ms": 8.074917,
+          "steps_per_second": 193.81540831038575,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 88.5009765625,
+          "counts_sha256": "e8c04080393d0e0b8f86d2f9f1115e7ac0c7e5792719df9c6cf9d3926213e062"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 7.787468752999999,
+          "median_ms": 7.4607915,
+          "p95_ms": 11.06168365,
+          "p99_ms": 12.342063,
+          "max_ms": 14.268375,
+          "steps_per_second": 128.4114301729642,
+          "rate_hz": 0.33399999999999996,
+          "memory_mb": 111.38916015625,
+          "counts_sha256": "e8c04080393d0e0b8f86d2f9f1115e7ac0c7e5792719df9c6cf9d3926213e062"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 4.756008068666666,
+          "median_ms": 4.307479,
+          "p95_ms": 7.383862499999999,
+          "p99_ms": 8.62415657999999,
+          "steps_per_second": 210.26036658519533,
+          "run_mean_min_ms": 3.966061081,
+          "run_mean_max_ms": 5.159548504,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 88.5009765625
+        },
+        "mps": {
+          "mean_ms": 7.5811320669999995,
+          "median_ms": 7.3064995,
+          "p95_ms": 11.228529199999997,
+          "p99_ms": 12.51188333,
+          "steps_per_second": 131.90642125242903,
+          "run_mean_min_ms": 7.217252236,
+          "run_mean_max_ms": 7.787468752999999,
+          "rate_hz": 0.3339999999999999,
+          "memory_mb": 111.38916015625
+        }
+      },
+      "gpu_speedup": 0.6273480037854966
+    },
+    {
+      "activity": "active",
+      "neurons": 10000,
+      "fanout": 10,
+      "edges": 100000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 0.573868792,
+          "median_ms": 0.2794165,
+          "p95_ms": 1.2783565499999998,
+          "p99_ms": 1.4395457499999997,
+          "max_ms": 1.579292,
+          "steps_per_second": 1742.5586021412366,
+          "rate_hz": 31.43162,
+          "memory_mb": 4.425048828125,
+          "counts_sha256": "c1f26294f99d1b0c9e61dda16e5de09dec7c3d1b64cc37266a406528cc249049"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 0.9640353150000001,
+          "median_ms": 0.774271,
+          "p95_ms": 1.9781416999999994,
+          "p99_ms": 3.541754579999997,
+          "max_ms": 9.356917,
+          "steps_per_second": 1037.3063978470539,
+          "rate_hz": 31.43162,
+          "memory_mb": 5.5694580078125,
+          "counts_sha256": "c1f26294f99d1b0c9e61dda16e5de09dec7c3d1b64cc37266a406528cc249049"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 1.00648399,
+          "median_ms": 0.883542,
+          "p95_ms": 1.8756083499999976,
+          "p99_ms": 2.8068495899999997,
+          "max_ms": 3.182875,
+          "steps_per_second": 993.557781281747,
+          "rate_hz": 31.43162,
+          "memory_mb": 5.5694580078125,
+          "counts_sha256": "c1f26294f99d1b0c9e61dda16e5de09dec7c3d1b64cc37266a406528cc249049"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 0.981273241,
+          "median_ms": 0.44085399999999997,
+          "p95_ms": 2.2631523999999996,
+          "p99_ms": 2.4854571699999997,
+          "max_ms": 3.065458,
+          "steps_per_second": 1019.0841431494819,
+          "rate_hz": 31.43162,
+          "memory_mb": 4.425048828125,
+          "counts_sha256": "c1f26294f99d1b0c9e61dda16e5de09dec7c3d1b64cc37266a406528cc249049"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 0.896975328,
+          "median_ms": 0.4301255,
+          "p95_ms": 2.1641482499999998,
+          "p99_ms": 2.34164708,
+          "max_ms": 2.793125,
+          "steps_per_second": 1114.8578659679702,
+          "rate_hz": 31.43162,
+          "memory_mb": 4.425048828125,
+          "counts_sha256": "c1f26294f99d1b0c9e61dda16e5de09dec7c3d1b64cc37266a406528cc249049"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 0.8435509489999999,
+          "median_ms": 0.754042,
+          "p95_ms": 1.4513767499999988,
+          "p99_ms": 2.25720866,
+          "max_ms": 2.618833,
+          "steps_per_second": 1185.4648509203444,
+          "rate_hz": 31.43162,
+          "memory_mb": 5.5694580078125,
+          "counts_sha256": "c1f26294f99d1b0c9e61dda16e5de09dec7c3d1b64cc37266a406528cc249049"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 0.8173724536666666,
+          "median_ms": 0.4157915,
+          "p95_ms": 2.1640815499999997,
+          "p99_ms": 2.418834169999995,
+          "steps_per_second": 1223.4324701231135,
+          "run_mean_min_ms": 0.573868792,
+          "run_mean_max_ms": 0.981273241,
+          "rate_hz": 31.43162,
+          "memory_mb": 4.425048828125
+        },
+        "mps": {
+          "mean_ms": 0.9380234180000001,
+          "median_ms": 0.7904585,
+          "p95_ms": 1.8400583499999998,
+          "p99_ms": 2.768005509999999,
+          "steps_per_second": 1066.0714656059897,
+          "run_mean_min_ms": 0.8435509489999999,
+          "run_mean_max_ms": 1.00648399,
+          "rate_hz": 31.43162,
+          "memory_mb": 5.5694580078125
+        }
+      },
+      "gpu_speedup": 0.8713774496263871
+    },
+    {
+      "activity": "active",
+      "neurons": 20000,
+      "fanout": 10,
+      "edges": 200000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 1.711118396,
+          "median_ms": 0.8374790000000001,
+          "p95_ms": 3.9093351000000003,
+          "p99_ms": 4.31047783,
+          "max_ms": 4.618042,
+          "steps_per_second": 584.4130963337501,
+          "rate_hz": 31.512885,
+          "memory_mb": 8.85009765625,
+          "counts_sha256": "63ced533564ee72bc0f5b9062cb28d9f913ba6264eb1d1f9b982443e1cb0cd9b"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 1.074659622,
+          "median_ms": 0.972458,
+          "p95_ms": 1.8466728999999973,
+          "p99_ms": 2.53962833,
+          "max_ms": 2.907167,
+          "steps_per_second": 930.5271916134204,
+          "rate_hz": 31.512885,
+          "memory_mb": 11.138916015625,
+          "counts_sha256": "63ced533564ee72bc0f5b9062cb28d9f913ba6264eb1d1f9b982443e1cb0cd9b"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 1.228372275,
+          "median_ms": 1.108292,
+          "p95_ms": 2.5477898999999993,
+          "p99_ms": 2.8892125899999996,
+          "max_ms": 3.224875,
+          "steps_per_second": 814.085453043948,
+          "rate_hz": 31.512885,
+          "memory_mb": 11.138916015625,
+          "counts_sha256": "63ced533564ee72bc0f5b9062cb28d9f913ba6264eb1d1f9b982443e1cb0cd9b"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 1.752619053,
+          "median_ms": 0.8619165,
+          "p95_ms": 4.13016605,
+          "p99_ms": 4.59067309,
+          "max_ms": 5.664375,
+          "steps_per_second": 570.5746484316007,
+          "rate_hz": 31.512885,
+          "memory_mb": 8.85009765625,
+          "counts_sha256": "63ced533564ee72bc0f5b9062cb28d9f913ba6264eb1d1f9b982443e1cb0cd9b"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 1.57697516,
+          "median_ms": 0.7321044999999999,
+          "p95_ms": 3.5497934499999997,
+          "p99_ms": 3.7138724999999995,
+          "max_ms": 4.107958,
+          "steps_per_second": 634.1253973841922,
+          "rate_hz": 31.512885,
+          "memory_mb": 8.85009765625,
+          "counts_sha256": "63ced533564ee72bc0f5b9062cb28d9f913ba6264eb1d1f9b982443e1cb0cd9b"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 1.054992619,
+          "median_ms": 0.94725,
+          "p95_ms": 1.9438125,
+          "p99_ms": 2.55407142,
+          "max_ms": 3.058083,
+          "steps_per_second": 947.8739301018749,
+          "rate_hz": 31.512885,
+          "memory_mb": 11.138916015625,
+          "counts_sha256": "63ced533564ee72bc0f5b9062cb28d9f913ba6264eb1d1f9b982443e1cb0cd9b"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 1.6802375363333333,
+          "median_ms": 0.8144165,
+          "p95_ms": 3.8733086500000002,
+          "p99_ms": 4.347087919999998,
+          "steps_per_second": 595.1539460201748,
+          "run_mean_min_ms": 1.57697516,
+          "run_mean_max_ms": 1.752619053,
+          "rate_hz": 31.512885,
+          "memory_mb": 8.85009765625
+        },
+        "mps": {
+          "mean_ms": 1.1193415053333333,
+          "median_ms": 1.0067295,
+          "p95_ms": 2.0154833499999967,
+          "p99_ms": 2.672332589999997,
+          "steps_per_second": 893.3823995941309,
+          "run_mean_min_ms": 1.054992619,
+          "run_mean_max_ms": 1.228372275,
+          "rate_hz": 31.512885,
+          "memory_mb": 11.138916015625
+        }
+      },
+      "gpu_speedup": 1.501094642097604
+    },
+    {
+      "activity": "active",
+      "neurons": 30000,
+      "fanout": 10,
+      "edges": 300000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 2.576302823,
+          "median_ms": 1.228896,
+          "p95_ms": 5.899675599999999,
+          "p99_ms": 6.49431008,
+          "max_ms": 7.556541,
+          "steps_per_second": 388.15312822408845,
+          "rate_hz": 31.48174666666667,
+          "memory_mb": 13.275146484375,
+          "counts_sha256": "021246e4f37b823825708859f6f53c24589ee3da72d13166ec42e7ae4268a64e"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 1.4192584310000003,
+          "median_ms": 1.1314585,
+          "p95_ms": 2.6741785499999997,
+          "p99_ms": 5.849331249999998,
+          "max_ms": 10.062542,
+          "steps_per_second": 704.5933130694222,
+          "rate_hz": 31.48174666666667,
+          "memory_mb": 16.7083740234375,
+          "counts_sha256": "021246e4f37b823825708859f6f53c24589ee3da72d13166ec42e7ae4268a64e"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 1.628189721,
+          "median_ms": 1.3889375,
+          "p95_ms": 3.1650791999999996,
+          "p99_ms": 4.521408669999995,
+          "max_ms": 10.768708,
+          "steps_per_second": 614.1790401341073,
+          "rate_hz": 31.48174666666667,
+          "memory_mb": 16.7083740234375,
+          "counts_sha256": "021246e4f37b823825708859f6f53c24589ee3da72d13166ec42e7ae4268a64e"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 2.4527862110000003,
+          "median_ms": 1.1880205,
+          "p95_ms": 5.4651902,
+          "p99_ms": 5.90968691,
+          "max_ms": 6.465625,
+          "steps_per_second": 407.69961748614867,
+          "rate_hz": 31.48174666666667,
+          "memory_mb": 13.275146484375,
+          "counts_sha256": "021246e4f37b823825708859f6f53c24589ee3da72d13166ec42e7ae4268a64e"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 2.533112643,
+          "median_ms": 1.205042,
+          "p95_ms": 5.630509,
+          "p99_ms": 6.05162717,
+          "max_ms": 6.902208,
+          "steps_per_second": 394.77123244534687,
+          "rate_hz": 31.48174666666667,
+          "memory_mb": 13.275146484375,
+          "counts_sha256": "021246e4f37b823825708859f6f53c24589ee3da72d13166ec42e7ae4268a64e"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 1.5843304990000002,
+          "median_ms": 1.2265,
+          "p95_ms": 3.0350603999999985,
+          "p99_ms": 6.163407079999999,
+          "max_ms": 8.585084,
+          "steps_per_second": 631.1814363424685,
+          "rate_hz": 31.48174666666667,
+          "memory_mb": 16.7083740234375,
+          "counts_sha256": "021246e4f37b823825708859f6f53c24589ee3da72d13166ec42e7ae4268a64e"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 2.5207338923333333,
+          "median_ms": 1.2054375,
+          "p95_ms": 5.685802099999999,
+          "p99_ms": 6.21404792,
+          "steps_per_second": 396.7098641556105,
+          "run_mean_min_ms": 2.4527862110000003,
+          "run_mean_max_ms": 2.576302823,
+          "rate_hz": 31.48174666666667,
+          "memory_mb": 13.275146484375
+        },
+        "mps": {
+          "mean_ms": 1.543926217,
+          "median_ms": 1.2518335,
+          "p95_ms": 2.9949499999999936,
+          "p99_ms": 5.7727774099999944,
+          "steps_per_second": 647.6993453373037,
+          "run_mean_min_ms": 1.4192584310000003,
+          "run_mean_max_ms": 1.628189721,
+          "rate_hz": 31.48174666666667,
+          "memory_mb": 16.7083740234375
+        }
+      },
+      "gpu_speedup": 1.6326776918338535
+    },
+    {
+      "activity": "active",
+      "neurons": 50000,
+      "fanout": 10,
+      "edges": 500000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 4.224891552,
+          "median_ms": 2.11925,
+          "p95_ms": 9.265387500000001,
+          "p99_ms": 9.64792708,
+          "max_ms": 10.138208,
+          "steps_per_second": 236.69246599397684,
+          "rate_hz": 31.472892,
+          "memory_mb": 22.125244140625,
+          "counts_sha256": "b504f9890a69f2fa17772cefc095e7c0d80a4eb211a3ded392aac5ee150ebf1a"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 1.932197929,
+          "median_ms": 1.702125,
+          "p95_ms": 3.560168449999999,
+          "p99_ms": 5.137425329999994,
+          "max_ms": 11.819459,
+          "steps_per_second": 517.5453223457006,
+          "rate_hz": 31.472892,
+          "memory_mb": 27.8472900390625,
+          "counts_sha256": "b504f9890a69f2fa17772cefc095e7c0d80a4eb211a3ded392aac5ee150ebf1a"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 1.9470029150000001,
+          "median_ms": 1.743354,
+          "p95_ms": 3.3624288499999997,
+          "p99_ms": 3.8450354200000003,
+          "max_ms": 6.425125,
+          "steps_per_second": 513.6099141382127,
+          "rate_hz": 31.472892,
+          "memory_mb": 27.8472900390625,
+          "counts_sha256": "b504f9890a69f2fa17772cefc095e7c0d80a4eb211a3ded392aac5ee150ebf1a"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 4.169670087,
+          "median_ms": 2.033271,
+          "p95_ms": 9.303949699999999,
+          "p99_ms": 9.81756658,
+          "max_ms": 10.460125,
+          "steps_per_second": 239.82712759883634,
+          "rate_hz": 31.472892,
+          "memory_mb": 22.125244140625,
+          "counts_sha256": "b504f9890a69f2fa17772cefc095e7c0d80a4eb211a3ded392aac5ee150ebf1a"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 4.226172379,
+          "median_ms": 2.0988125,
+          "p95_ms": 9.255892,
+          "p99_ms": 9.73768333,
+          "max_ms": 10.587292,
+          "steps_per_second": 236.62073155582468,
+          "rate_hz": 31.472892,
+          "memory_mb": 22.125244140625,
+          "counts_sha256": "b504f9890a69f2fa17772cefc095e7c0d80a4eb211a3ded392aac5ee150ebf1a"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 3.365893322,
+          "median_ms": 2.8877705000000002,
+          "p95_ms": 7.7352851,
+          "p99_ms": 10.626479589999999,
+          "max_ms": 12.155167,
+          "steps_per_second": 297.0979482516113,
+          "rate_hz": 31.472892,
+          "memory_mb": 27.8472900390625,
+          "counts_sha256": "b504f9890a69f2fa17772cefc095e7c0d80a4eb211a3ded392aac5ee150ebf1a"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 4.206911339333333,
+          "median_ms": 2.0884165,
+          "p95_ms": 9.274870799999999,
+          "p99_ms": 9.748232999999999,
+          "steps_per_second": 237.70408248215412,
+          "run_mean_min_ms": 4.169670087,
+          "run_mean_max_ms": 4.226172379,
+          "rate_hz": 31.472892,
+          "memory_mb": 22.125244140625
+        },
+        "mps": {
+          "mean_ms": 2.415031388666667,
+          "median_ms": 1.8115830000000002,
+          "p95_ms": 6.200634799999992,
+          "p99_ms": 8.439700739999996,
+          "steps_per_second": 414.0732930813366,
+          "run_mean_min_ms": 1.932197929,
+          "run_mean_max_ms": 3.365893322,
+          "rate_hz": 31.472892,
+          "memory_mb": 27.8472900390625
+        }
+      },
+      "gpu_speedup": 1.7419696319789693
+    },
+    {
+      "activity": "active",
+      "neurons": 100000,
+      "fanout": 10,
+      "edges": 1000000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 9.006948492,
+          "median_ms": 4.254792,
+          "p95_ms": 21.08776875,
+          "p99_ms": 23.82847208,
+          "max_ms": 25.721,
+          "steps_per_second": 111.02539343798881,
+          "rate_hz": 31.395235000000003,
+          "memory_mb": 44.25048828125,
+          "counts_sha256": "e7daedd106f41880f8d8ebdf03863cd357f00b4e75bbc16eeaafae89b729abbd"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 5.121389220999999,
+          "median_ms": 4.717021,
+          "p95_ms": 9.994909799999999,
+          "p99_ms": 11.00826116,
+          "max_ms": 18.315666,
+          "steps_per_second": 195.25951979973524,
+          "rate_hz": 31.395235000000003,
+          "memory_mb": 55.694580078125,
+          "counts_sha256": "e7daedd106f41880f8d8ebdf03863cd357f00b4e75bbc16eeaafae89b729abbd"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 3.19062459,
+          "median_ms": 2.3975415,
+          "p95_ms": 7.343406599999997,
+          "p99_ms": 11.162436249999999,
+          "max_ms": 13.908667,
+          "steps_per_second": 313.4182577085949,
+          "rate_hz": 31.395235000000003,
+          "memory_mb": 55.694580078125,
+          "counts_sha256": "e7daedd106f41880f8d8ebdf03863cd357f00b4e75bbc16eeaafae89b729abbd"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 8.353169051,
+          "median_ms": 3.9312085000000003,
+          "p95_ms": 18.53510655,
+          "p99_ms": 19.28002833,
+          "max_ms": 21.02675,
+          "steps_per_second": 119.71504394254836,
+          "rate_hz": 31.395235000000003,
+          "memory_mb": 44.25048828125,
+          "counts_sha256": "e7daedd106f41880f8d8ebdf03863cd357f00b4e75bbc16eeaafae89b729abbd"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 8.425371956000001,
+          "median_ms": 3.9811875,
+          "p95_ms": 18.841815200000003,
+          "p99_ms": 19.479937919999998,
+          "max_ms": 19.84675,
+          "steps_per_second": 118.68912200224764,
+          "rate_hz": 31.395235000000003,
+          "memory_mb": 44.25048828125,
+          "counts_sha256": "e7daedd106f41880f8d8ebdf03863cd357f00b4e75bbc16eeaafae89b729abbd"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 5.398281931,
+          "median_ms": 4.969708499999999,
+          "p95_ms": 9.714947599999999,
+          "p99_ms": 10.834509999999998,
+          "max_ms": 19.649666,
+          "steps_per_second": 185.24412262676248,
+          "rate_hz": 31.395235000000003,
+          "memory_mb": 55.694580078125,
+          "counts_sha256": "e7daedd106f41880f8d8ebdf03863cd357f00b4e75bbc16eeaafae89b729abbd"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 8.595163166333334,
+          "median_ms": 4.039917,
+          "p95_ms": 19.15923955,
+          "p99_ms": 22.898133749999992,
+          "steps_per_second": 116.34450453679943,
+          "run_mean_min_ms": 8.353169051,
+          "run_mean_max_ms": 9.006948492,
+          "rate_hz": 31.395235000000003,
+          "memory_mb": 44.25048828125
+        },
+        "mps": {
+          "mean_ms": 4.5700985806666665,
+          "median_ms": 3.9232085000000003,
+          "p95_ms": 9.602825300000001,
+          "p99_ms": 11.016841489999997,
+          "steps_per_second": 218.81366065721153,
+          "run_mean_min_ms": 3.19062459,
+          "run_mean_max_ms": 5.398281931,
+          "rate_hz": 31.395235000000003,
+          "memory_mb": 55.694580078125
+        }
+      },
+      "gpu_speedup": 1.880739116371426
+    },
+    {
+      "activity": "active",
+      "neurons": 200000,
+      "fanout": 10,
+      "edges": 2000000,
+      "runs": [
+        {
+          "device": "cpu",
+          "repeat": 0,
+          "mean_ms": 17.98784987,
+          "median_ms": 8.206624999999999,
+          "p95_ms": 40.7315955,
+          "p99_ms": 43.38920398999999,
+          "max_ms": 48.083375,
+          "steps_per_second": 55.59308128692982,
+          "rate_hz": 31.4379955,
+          "memory_mb": 88.5009765625,
+          "counts_sha256": "0d7766b8445714b25cf9383d621d16d2cf5b909a11eae1655076ffa42087de5a"
+        },
+        {
+          "device": "mps",
+          "repeat": 0,
+          "mean_ms": 7.980623203,
+          "median_ms": 7.813313000000001,
+          "p95_ms": 11.03739195,
+          "p99_ms": 11.89094791,
+          "max_ms": 12.738541,
+          "steps_per_second": 125.30349755443778,
+          "rate_hz": 31.4379955,
+          "memory_mb": 111.38916015625,
+          "counts_sha256": "0d7766b8445714b25cf9383d621d16d2cf5b909a11eae1655076ffa42087de5a"
+        },
+        {
+          "device": "mps",
+          "repeat": 1,
+          "mean_ms": 7.360536921,
+          "median_ms": 6.0138750000000005,
+          "p95_ms": 13.858796449999998,
+          "p99_ms": 22.310360169999996,
+          "max_ms": 31.634958,
+          "steps_per_second": 135.85965408949275,
+          "rate_hz": 31.4379955,
+          "memory_mb": 111.38916015625,
+          "counts_sha256": "0d7766b8445714b25cf9383d621d16d2cf5b909a11eae1655076ffa42087de5a"
+        },
+        {
+          "device": "cpu",
+          "repeat": 1,
+          "mean_ms": 18.242887546000002,
+          "median_ms": 8.273667,
+          "p95_ms": 41.658908350000004,
+          "p99_ms": 44.35297592,
+          "max_ms": 56.629042,
+          "steps_per_second": 54.81588358632751,
+          "rate_hz": 31.4379955,
+          "memory_mb": 88.5009765625,
+          "counts_sha256": "0d7766b8445714b25cf9383d621d16d2cf5b909a11eae1655076ffa42087de5a"
+        },
+        {
+          "device": "cpu",
+          "repeat": 2,
+          "mean_ms": 18.038225699,
+          "median_ms": 8.319792,
+          "p95_ms": 40.44963715,
+          "p99_ms": 42.357674339999996,
+          "max_ms": 43.604542,
+          "steps_per_second": 55.43782502152846,
+          "rate_hz": 31.4379955,
+          "memory_mb": 88.5009765625,
+          "counts_sha256": "0d7766b8445714b25cf9383d621d16d2cf5b909a11eae1655076ffa42087de5a"
+        },
+        {
+          "device": "mps",
+          "repeat": 2,
+          "mean_ms": 7.7574001699999995,
+          "median_ms": 7.443417,
+          "p95_ms": 11.86832355,
+          "p99_ms": 12.82348351,
+          "max_ms": 15.778958,
+          "steps_per_second": 128.90916777340883,
+          "rate_hz": 31.4379955,
+          "memory_mb": 111.38916015625,
+          "counts_sha256": "0d7766b8445714b25cf9383d621d16d2cf5b909a11eae1655076ffa42087de5a"
+        }
+      ],
+      "parity": [
+        {
+          "repeat": 0,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 1,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        },
+        {
+          "repeat": 2,
+          "count_mismatches": 0,
+          "max_count_difference": 0,
+          "max_potential_difference": 0.0
+        }
+      ],
+      "summary": {
+        "cpu": {
+          "mean_ms": 18.08965437166667,
+          "median_ms": 8.2664165,
+          "p95_ms": 40.9202104,
+          "p99_ms": 43.76019049999999,
+          "steps_per_second": 55.2802159430018,
+          "run_mean_min_ms": 17.98784987,
+          "run_mean_max_ms": 18.242887546000002,
+          "rate_hz": 31.4379955,
+          "memory_mb": 88.5009765625
+        },
+        "mps": {
+          "mean_ms": 7.699520098000001,
+          "median_ms": 7.236729,
+          "p95_ms": 12.0576173,
+          "p99_ms": 15.843293329999984,
+          "steps_per_second": 129.87822452203955,
+          "run_mean_min_ms": 7.360536921,
+          "run_mean_max_ms": 7.980623203,
+          "rate_hz": 31.4379955,
+          "memory_mb": 111.38916015625
+        }
+      },
+      "gpu_speedup": 2.3494521920094176
+    }
+  ]
+}

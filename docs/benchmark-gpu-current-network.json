@@ -1,0 +1,52 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python": "3.13.13",
+  "numpy": "2.5.4",
+  "pytorch": "2.14.1",
+  "drive": 0.1,
+  "seed": 42,
+  "dt_ms": 10,
+  "scope": "Synchronized Network.step including spike readback; excludes world, telemetry, browser",
+  "available_devices": [
+    {
+      "id": "cpu",
+      "label": "CPU \u00b7 NumPy",
+      "available": true,
+      "reason": ""
+    },
+    {
+      "id": "mps",
+      "label": "GPU \u00b7 Apple Metal",
+      "available": true,
+      "reason": ""
+    },
+    {
+      "id": "cuda:0",
+      "label": "GPU \u00b7 NVIDIA CUDA",
+      "available": false,
+      "reason": "\u041d\u0435\u0442 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e\u0433\u043e CUDA GPU \u0438\u043b\u0438 \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0430 \u0441\u0431\u043e\u0440\u043a\u0430 PyTorch \u0431\u0435\u0437 CUDA"
+    }
+  ],
+  "results": [
+    {
+      "device": "cpu",
+      "neurons": 141,
+      "edges": 1427,
+      "steps": 300,
+      "median_ms": 0.017708007362671196,
+      "p95_ms": 0.02467950835125521,
+      "memory_mb": 0.049889564514160156,
+      "spikes_per_neuron": 78.51063829787235
+    },
+    {
+      "device": "mps",
+      "neurons": 141,
+      "edges": 1427,
+      "steps": 300,
+      "median_ms": 0.6305620045168325,
+      "p95_ms": 1.142056247044822,
+      "memory_mb": 0.06622028350830078,
+      "spikes_per_neuron": 78.51063829787235
+    }
+  ]
+}

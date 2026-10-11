@@ -1,0 +1,3 @@
+-r requirements.txt
+# Optional; CPU works without PyTorch. For NVIDIA choose the CUDA wheel for your driver.
+torch>=2.8,<3

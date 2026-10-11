@@ -11,9 +11,9 @@ import time
 from collections import deque
 import numpy as np
 from . import schema
-from .engine import Network
+from .devices import create_network, devices
 from .world import World
-from .generators import ganglion, maze
+from .generators import ganglion, maze, connect_ganglia
 
 
 class Conflict(ValueError):
@@ -36,8 +36,14 @@ class Runtime:
             initial = json.loads(path.read_text())
         p = schema.migrate_project(initial)
         self.name = p["name"]
-        self.net = Network(p["topology"])
         self.world = World(p["world"])
+        self.device_notice = ""
+        requested = initial.get("compute", {}).get("device", "cpu")
+        try:
+            self.net = create_network(p["topology"], self.world.config["seed"], requested)
+        except ValueError as exc:
+            self.device_notice = f"Устройство {requested} недоступно; выбран CPU. {exc}"
+            self.net = create_network(p["topology"], self.world.config["seed"])
         self.bindings = p["bindings"]
         self.revision = 1
         self.running = False
@@ -91,6 +97,7 @@ class Runtime:
             bindings=self.bindings,
             world=self.world.export(),
             revision=self.revision,
+            compute=dict(device=self.net.device),
         )
 
     def save(self):
@@ -102,17 +109,19 @@ class Runtime:
         os.replace(temp, self.path)
 
     def _replace_net(self, net, preserve=True):
-        new = Network(net, self.world.config["seed"])
+        new = create_network(net, self.world.config["seed"], self.net.device)
         if preserve:
-            for i, nid in enumerate(new.ids):
-                old = self.net.index.get(nid)
-                if old is not None:
-                    new.V[i] = self.net.V[old]
-                    new.refr[i] = self.net.refr[old]
-                    new.sensitivity[i] = self.net.sensitivity[old]
-                    new.total[i] = self.net.total[old]
+            pairs = [
+                (i, self.net.index[nid]) for i, nid in enumerate(new.ids) if nid in self.net.index
+            ]
+            for key in ("V", "refr", "sensitivity", "total"):
+                before, after = self.net.host_values(key), new.host_values(key)
+                for i, old in pairs:
+                    after[i] = before[old]
+                new.set_values(key, after)
             new.tick = self.net.tick
             new.rng.bit_generator.state = copy.deepcopy(self.net.rng.bit_generator.state)
+        new.synchronize()
         self.net = new
         self.window_counts = np.zeros(new.n, np.int64)
         self.window_ticks = 0
@@ -139,6 +148,8 @@ class Runtime:
                     self.step()
                 elif mode == "reset":
                     self.running = False
+                    self.manual = {}
+                    self.inject.clear()
                     self._replace_net(self.net.topology, False)
                     self.world.reset_agent()
                     self.world.sense()
@@ -163,7 +174,22 @@ class Runtime:
                 raise Conflict(
                     "Проект изменён в другом окне. Данные обновлены; повторите действие."
                 )
-            if action == "topology":
+            if action == "compute":
+                device = data.get("device")
+                if not isinstance(device, str):
+                    raise ValueError("Укажите вычислительное устройство")
+                if device != self.net.device:
+                    # Construct and transfer first: a rejected switch leaves the old kernel intact.
+                    new = create_network(self.net.topology, self.world.config["seed"], device)
+                    for key in self.net.state_fields:
+                        new.set_values(key, self.net.host_values(key))
+                    new.tick = self.net.tick
+                    new.rng.bit_generator.state = copy.deepcopy(self.net.rng.bit_generator.state)
+                    new.synchronize()
+                    self.net = new
+                    self.last_step_ms = 0.0
+                self.device_notice = ""
+            elif action == "topology":
                 net = schema.topology(data)
                 b = {
                     k: v if v in {n["id"] for n in net["neurons"]} else ""
@@ -206,13 +232,40 @@ class Runtime:
                     n["y"] = y
             elif action == "ganglion":
                 self._replace_net(ganglion(self.net.topology, data))
+            elif action == "connect_ganglia":
+                net = connect_ganglia(self.net.topology, data)
+                added = len(net["synapses"]) - len(self.net.topology["synapses"])
+                if added:
+                    self._replace_net(net)
+                self.revision += 1
+                self.save()
+                return {"revision": self.revision, "added_synapses": added}
+            elif action == "move_ganglion":
+                group = next(
+                    (g for g in self.net.topology["ganglia"] if g["id"] == data.get("id")), None
+                )
+                if group is None:
+                    raise ValueError("Ганглий не найден")
+                dx = schema.number(data.get("dx"), "dx", -200000, 200000)
+                dy = schema.number(data.get("dy"), "dy", -200000, 200000)
+                members = [
+                    self.net.topology["neurons"][self.net.index[nid]] for nid in group["members"]
+                ]
+                for item in [group, *members]:
+                    schema.number(item["x"] + dx, "x", -100000, 100000)
+                    schema.number(item["y"] + dy, "y", -100000, 100000)
+                for item in [group, *members]:
+                    item["x"] += dx
+                    item["y"] += dy
             elif action == "bindings":
                 self.bindings = schema.bindings(data, self.net.topology)
             elif action == "import":
                 p = schema.migrate_project(data)
                 world = World(p["world"])
-                net = Network(p["topology"], world.config["seed"])
+                net = create_network(p["topology"], world.config["seed"], self.net.device)
                 self.running = False
+                self.manual = {}
+                self.inject.clear()
                 self.name = p["name"]
                 self.world = world
                 self.net = net
@@ -305,11 +358,6 @@ class Runtime:
             i = self.net.index.get(self.bindings.get(channel))
             if i is not None:
                 external[i] += value
-        if time.monotonic() < self.manual_until:
-            for channel, on in self.manual.items():
-                i = self.net.index.get(self.bindings.get(channel))
-                if i is not None and on:
-                    external[i] += 1.2
         for nid, value in self.inject.items():
             if nid in self.net.index:
                 external[self.net.index[nid]] += value
@@ -320,7 +368,7 @@ class Runtime:
             for k, v in self.bindings.items()
             if k in schema.MOTORS
         }
-        self.world.step(motors)
+        self.world.step(motors, manual=self.active_manual())
         self.ticks += 1
         self.window_ticks += 1
         self.window_counts += spikes
@@ -341,6 +389,9 @@ class Runtime:
             n = self.net
             # Cumulative spike counts cannot be consumed by one client or lost between frames.
             limit = 2000
+            potential = n.host_values("V", limit)
+            counts = n.host_values("total", limit)
+            sensitivity = n.host_values("sensitivity", limit)
             return dict(
                 revision=self.revision,
                 session=self.session,
@@ -350,10 +401,10 @@ class Runtime:
                 world=self.world.snapshot(),
                 activity=dict(
                     ids=n.ids[:limit],
-                    v=n.V[:limit].tolist(),
-                    counts=n.total[:limit].tolist(),
-                    exc=n.sensitivity[:limit, 0].tolist(),
-                    inh=n.sensitivity[:limit, 1].tolist(),
+                    v=potential.tolist(),
+                    counts=counts.tolist(),
+                    exc=sensitivity[:, 0].tolist(),
+                    inh=sensitivity[:, 1].tolist(),
                     sampled=n.n > limit,
                     total=n.n,
                 ),
@@ -364,10 +415,29 @@ class Runtime:
                     step_ms=round(self.last_step_ms, 3),
                     memory_mb=round(n.memory_bytes / 1048576, 2),
                     overruns=self.overruns,
-                    backend="NumPy · CPU",
+                    backend=n.backend,
                 ),
+                compute=dict(device=n.device, notice=self.device_notice),
                 error=self.error,
             )
+
+    def compute_devices(self):
+        with self.lock:
+            return dict(devices=devices(), device=self.net.device, notice=self.device_notice)
+
+    def active_manual(self):
+        return (
+            self.manual
+            if time.monotonic() < self.manual_until and any(self.manual.values())
+            else None
+        )
+
+    def jog(self, duration):
+        """Move the paused bug manually without advancing neural or world time."""
+        manual = self.active_manual()
+        if manual:
+            self.world.drive(manual, min(duration, 0.05))
+            self.world.sense()
 
     def loop(self):
         last = time.monotonic()
@@ -378,6 +448,7 @@ class Runtime:
             last = now
             with self.lock:
                 if not self.running:
+                    self.jog(elapsed)
                     acc = 0.0
                     continue
                 acc += elapsed * self.speed

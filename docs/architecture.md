@@ -8,8 +8,10 @@ or importing an experiment. The default controller is hand-wired.
 
 - `server/schema.py`: format validation and legacy migration.
 - `server/engine.py`: NumPy LIF state and delayed sparse transmission; no HTTP/world code.
+- `server/gpu.py`: device-resident PyTorch LIF kernel for Metal/MPS and CUDA.
+- `server/devices.py`: optional GPU discovery and explicit backend factory.
 - `server/world.py`: BUG geometry, sensors, food, obstacles, threats.
-- `server/generators.py`: seeded ganglia and connected DFS mazes.
+- `server/generators.py`: seeded ganglia, inter-ganglion projections and connected DFS mazes.
 - `server/runtime.py`: authoritative clock, bindings, transactions, telemetry, persistence.
 - `server/app.py`: local REST API and SSE at 15 Hz.
 - `apps/environment`: Vite entry on port 5173.
@@ -86,13 +88,20 @@ At compile time its incoming connections fan out to explicit member IDs. Each
 member receives the full weight, not a weight divided by group size. Membership
 is explicit; dragging a neuron outside the drawn circle does not remove it.
 A neuron belongs to at most one ganglion.
+Dragging a ganglion translates its center and every explicit member atomically,
+including members outside its circle. This is a geometry-only edit.
 
 The generator places neurons uniformly by area in a disk (`r = R sqrt(U)`). Each
 directed pair is independently connected with the requested probability,
 excluding self-edges. It supports either neuron-level E/I polarity (all direct
 outgoing weights have the same sign) or edge-level random signs. The E fraction
 is a Bernoulli probability, not an exact quota. Geometric skips avoid allocating
-an N×N adjacency matrix. Modulatory edges are created explicitly in the editor.
+an N×N adjacency matrix. An optional maximum Euclidean distance filters eligible
+pairs; zero means unlimited. The probability applies within the distance limit.
+Inter-ganglion generation uses directed source-member/target-member pairs with
+the same probability and distance rules. Existing pairs of the same kind are
+skipped. It supports direct and both modulatory kinds; direct signs respect fixed
+E/I source polarity, while mixed sources and modulators use the supplied sign.
 
 Structural/parameter edits preserve V, sensitivity, refractory counters, cumulative
 counts and random-generator state for surviving neuron IDs, but discard in-flight
@@ -114,14 +123,34 @@ ring can use about 82 MB at 20k neurons and delay 256, excluding edge arrays,
 Python topology objects and JSON buffers. The UI memory metric is NumPy arrays
 only, not process RSS.
 
-CPU is the implemented backend. GPU is not required or advertised as implemented.
-For this interactive one-network workload, benchmark CPU first. A useful GPU
-extension would keep state, delays and scatter-add on-device, transfer only
-reduced telemetry, then test deterministic small-network parity and measure
-synchronized end-to-end latency. MPS availability alone is not evidence of a speedup:
-[PyTorch MPS API](https://docs.pytorch.org/docs/stable/mps.html) includes explicit
-synchronization needed for timing. See the recorded benchmark and its boundaries
-in `performance.md`.
+CPU uses NumPy. The optional PyTorch backend runs LIF integration, modulation,
+refractory handling and delayed scatter-add on Metal/MPS or CUDA. State, parameters,
+edges and the delay ring remain on the GPU. It scatters all edge weights masked by
+source spikes, avoiding dynamic index selection and extra device synchronizations.
+Each step uploads external currents and reads back the boolean spike vector for
+CPU world control and group rate bins. Telemetry reads the first 2,000 neurons at
+snapshot time. The world, topology editing and seeded noise generation remain on
+CPU; noise uses the same NumPy RNG stream when switching devices. This version is
+not a fully GPU-resident world or batched simulator.
+
+Switching backends copies all transient arrays (including the delay ring), the
+tick and RNG state under the runtime lock, then replaces the kernel only after
+the new device has synchronized. World state, history and run/pause state survive.
+Structural edits and imports keep the selected device and retain their existing
+reset/preservation semantics. Device availability is discovered once per server
+process. CPU works without PyTorch. Unsupported selection is rejected; startup
+with an unavailable saved device uses CPU and reports the fallback. MPS with
+`PYTORCH_ENABLE_MPS_FALLBACK=1` is deliberately unavailable to prevent a GPU label
+from hiding unsupported operations executed on CPU.
+
+Both kernels use float32 state. Parallel scatter accumulation and noise arithmetic
+can differ by floating-point rounding; close-to-threshold spikes and long
+trajectories are not guaranteed bit-identical across devices. Local tests compare
+spikes and all transient state over 520 ticks, including maximum-delay arrivals,
+both reset modes and modulation. CUDA remains unverified on this MPS-only host.
+Timing includes GPU completion, following the
+[PyTorch MPS synchronization API](https://docs.pytorch.org/docs/stable/generated/torch.mps.synchronize.html).
+See CPU/GPU measurements and their boundaries in `performance.md`.
 
 ## World semantics
 
@@ -131,6 +160,13 @@ factor 0.7) and turn by `turn_speed * 0.04` radians. Thus the default 25 Hz moto
 firing rate produces the configured speed; changing motor refractory parameters
 changes realized speed. Threat speed is a continuous fraction of that configured
 nominal speed, not a guarantee to be slower than an idle or weakly driven bug.
+
+Keyboard WASD/arrow control directly overrides motor commands while held, without
+injecting neural currents or requiring bindings. It uses configured continuous
+speed and shares collision handling. Commands expire after 350 ms without a
+heartbeat. On pause only pose and sensor readings change; neural time, physiology,
+threats and food spawning remain frozen. Releasing keys returns control to the
+network. Focused form inputs do not trigger movement.
 
 Movement is substepped at at most half the body radius to prevent thin-wall
 penetration. Sensors use exact ray/AABB intersections; walls block food/threat

@@ -15,7 +15,10 @@ export class EnvironmentView {
     public view: Viewport,
     public side: HTMLElement,
   ) {
-    view.canvas.addEventListener("pointerdown", (e) => this.down(e));
+    view.canvas.addEventListener("pointerdown", (e) => {
+      view.canvas.focus({ preventScroll: true });
+      this.down(e);
+    });
     view.canvas.addEventListener("pointermove", (e) => this.move(e));
     view.canvas.addEventListener("pointerup", (e) => this.up(e));
     view.canvas.addEventListener("pointercancel", () => {
@@ -104,7 +107,7 @@ export class EnvironmentView {
       content.querySelector<HTMLElement>("#scenario")!.onclick = () =>
         this.scenario();
     } else if (this.tab === "agent") {
-      content.innerHTML = `<div class="section"><h3>Наблюдение</h3><label class="row"><input type="checkbox" id="show-sensors" ${this.sensors ? "checked" : ""}> Показывать сенсоры и обзор угроз</label><div class="spacer"></div><label class="row"><input type="checkbox" id="follow" ${this.follow ? "checked" : ""}> Следовать за жуком</label><p class="help">W / A / S / D подают ток на назначенные моторные нейроны, пока клавиши удерживаются.</p><div class="button-row"><button data-motor="left">↶ A</button><button data-motor="forward">↑ W</button><button data-motor="right">D ↷</button><button data-motor="backward">↓ S</button></div></div>
+      content.innerHTML = `<div class="section"><h3>Наблюдение</h3><label class="row"><input type="checkbox" id="show-sensors" ${this.sensors ? "checked" : ""}> Показывать сенсоры и обзор угроз</label><div class="spacer"></div><label class="row"><input type="checkbox" id="follow" ${this.follow ? "checked" : ""}> Следовать за жуком</label><p class="help">W / A / S / D или стрелки — прямое ручное управление. Работает и на паузе; отпустите клавиши, чтобы вернуть управление сети.</p><div class="button-row"><button data-motor="left">↶ A</button><button data-motor="forward">↑ W</button><button data-motor="right">D ↷</button><button data-motor="backward">↓ S</button></div></div>
       <form id="agent-form" class="section"><h3>Тело и восприятие</h3><div class="fields">${field("speed", "Скорость движения", c.speed, 10, 10, 400)}${field("turn_speed", "Поворот, рад/с", c.turn_speed, 0.1, 0.1, 10)}${field("sensor_range", "Дальность сенсоров", c.sensor_range, 10, 20, 2000)}${field("lidar_range", "Дальность лидара", c.lidar_range, 10, 20, 2000)}${field("hunger_rate", "Рост голода / с", c.hunger_rate, 0.001, 0, 1)}${field("fatigue_gain", "Усталость / спайк", c.fatigue_gain, 0.001, 0, 1)}${field("fatigue_decay", "Восстановление / с", c.fatigue_decay, 0.01, 0, 1)}</div><button class="primary wide">Применить параметры</button></form><div class="section"><h3>Сенсорные токи · 0…1</h3><div id="sensor-values" class="spark-table"></div></div>`;
       content.querySelector<HTMLInputElement>("#show-sensors")!.onchange = (
         e,

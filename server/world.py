@@ -210,23 +210,30 @@ class World:
         self.sensors = {k: min(1.0, v) for k, v in s.items()}
         return self.sensors
 
-    def step(self, motors):
+    def drive(self, motors, duration=DT):
+        """Apply a direct motor command with collisions; no clock or physiology update."""
+        a, c = self.agent, self.config
+        if a["health"] <= 0:
+            return
+        a["heading"] = (
+            a["heading"]
+            + (motors.get("right", False) - motors.get("left", False)) * c["turn_speed"] * duration
+        ) % math.tau
+        distance = (
+            (motors.get("forward", False) - 0.7 * motors.get("backward", False))
+            * c["speed"]
+            * duration
+        )
+        self.move(
+            a, math.cos(a["heading"]) * distance, math.sin(a["heading"]) * distance, self.radius
+        )
+
+    def step(self, motors, manual=None):
         c = self.config
         a = self.agent
         self.elapsed += DT
         if a["health"] > 0:
-            a["heading"] = (
-                a["heading"]
-                + (motors.get("right", False) - motors.get("left", False)) * c["turn_speed"] * 0.04
-            ) % math.tau
-            distance = (
-                (motors.get("forward", False) - 0.7 * motors.get("backward", False))
-                * c["speed"]
-                * 0.04
-            )
-            self.move(
-                a, math.cos(a["heading"]) * distance, math.sin(a["heading"]) * distance, self.radius
-            )
+            self.drive(motors if manual is None else manual, 0.04 if manual is None else DT)
             a["hunger"] = min(1.0, a["hunger"] + c["hunger_rate"] * DT)
             a["fatigue"] = max(
                 0.0,

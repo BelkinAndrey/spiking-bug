@@ -18,6 +18,9 @@ def main():
         raise SystemExit("Сначала запустите ./setup.sh")
     for port in (8000, 5173, 5174):
         with socket.socket() as sock:
+            if os.name != "nt":
+                # A stopped server's TIME_WAIT sockets must not block a quick restart.
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
                 sock.bind(("127.0.0.1", port))
             except OSError:

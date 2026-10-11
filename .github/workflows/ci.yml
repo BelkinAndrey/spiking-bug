@@ -18,12 +18,4 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - run: |
-          python -m server.app --project /tmp/bug-ci.json > /tmp/bug-api.log 2>&1 &
-          npm run dev:environment > /tmp/bug-env.log 2>&1 &
-          npm run dev:editor > /tmp/bug-editor.log 2>&1 &
-          for i in $(seq 1 60); do
-            if curl -fsS http://127.0.0.1:8000/api/health && curl -fsS http://127.0.0.1:5173/ >/dev/null && curl -fsS http://127.0.0.1:5174/ >/dev/null; then break; fi
-            sleep 1
-          done
-          npm run test:e2e
+      - run: npm run test:e2e

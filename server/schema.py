@@ -177,12 +177,13 @@ def topology(data):
     expanded = 0
     group_sizes = {g["id"]: len(g["members"]) for g in ganglia}
     polarities = {n["id"]: n["polarity"] for n in neurons}
+    target_ids = ids | gids
     for i, s in enumerate(ss):
         if not isinstance(s, dict):
             raise ValueError("Синапс должен быть объектом")
         source = s.get("source", s.get("from"))
         target = s.get("target", s.get("to"))
-        if source not in ids or target not in ids | gids:
+        if source not in ids or target not in target_ids:
             raise ValueError(f"Связь {i}: неизвестный ID")
         kind = s.get("kind", "direct")
         if kind not in KINDS:

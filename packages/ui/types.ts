@@ -95,6 +95,7 @@ export interface Zone {
   h: number;
 }
 export interface Project {
+  compute: { device: string };
   version: number;
   name: string;
   revision: number;
@@ -113,6 +114,7 @@ export interface Sample {
   spikes: number;
 }
 export interface State {
+  compute: { device: string; notice: string };
   revision: number;
   session: number;
   t: number;
@@ -154,6 +156,11 @@ export interface State {
     backend: string;
   };
   error: string | null;
+}
+export interface ComputeDevices {
+  device: string;
+  notice: string;
+  devices: { id: string; label: string; available: boolean; reason: string }[];
 }
 export const labels: Record<string, string> = {
   food_left: "Пища · слева",

@@ -460,6 +460,7 @@ p.help {
 }
 .transport {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 7px;
   padding: 10px 13px;
@@ -479,6 +480,15 @@ p.help {
 .transport .label {
   color: var(--muted);
   font-size: 10px;
+}
+.transport #compute-device {
+  width: 190px;
+  max-width: 100%;
+}
+#compute-notice {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 11px;
 }
 .footer {
   display: flex;
@@ -881,5 +891,55 @@ a:focus-visible {
   }
   #csv {
     white-space: nowrap;
+  }
+}
+.chart-wrap[hidden] {
+  display: none;
+}
+.layout.editor-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100vw;
+  height: 100dvh;
+  padding: 14px;
+  margin: 0;
+  background: #101819;
+  min-height: 0;
+}
+.layout.editor-fullscreen .chart-wrap {
+  display: none;
+}
+.layout.editor-fullscreen .main-column {
+  min-height: 0;
+}
+.layout.editor-fullscreen .stage {
+  min-height: 0;
+  height: auto;
+  flex: 1;
+}
+.layout.inspector-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+.layout.inspector-hidden .sidebar {
+  display: none;
+}
+#toast {
+  z-index: 200;
+}
+@media (max-width: 760px) {
+  .layout.editor-fullscreen {
+    display: flex;
+    padding: 8px;
+  }
+  .layout.editor-fullscreen .main-column {
+    flex: 1;
+  }
+  .layout.editor-fullscreen .sidebar {
+    max-height: 36vh;
+    flex-shrink: 0;
+  }
+  .heading-actions {
+    flex-wrap: wrap;
   }
 }

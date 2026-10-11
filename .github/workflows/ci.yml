@@ -1,0 +1,29 @@
+name: Validate
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: pip install -r requirements-dev.txt
+      - run: python -m unittest discover -s tests -v
+      - run: ruff check server scripts tests
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: |
+          python -m server.app --project /tmp/bug-ci.json > /tmp/bug-api.log 2>&1 &
+          npm run dev:environment > /tmp/bug-env.log 2>&1 &
+          npm run dev:editor > /tmp/bug-editor.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/api/health && curl -fsS http://127.0.0.1:5173/ >/dev/null && curl -fsS http://127.0.0.1:5174/ >/dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:e2e

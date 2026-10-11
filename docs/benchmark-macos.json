@@ -1,0 +1,37 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python": "3.13.13",
+  "numpy": "2.5.4",
+  "seed": 42,
+  "dt_ms": 10,
+  "scope": "Network.step only; excludes world, telemetry, browser",
+  "results": [
+    {
+      "neurons": 1000,
+      "edges": 10000,
+      "steps": 1000,
+      "median_ms": 0.03545801155269146,
+      "p95_ms": 0.11837499914690852,
+      "memory_mb": 0.44918060302734375,
+      "spikes_per_neuron": 339.779
+    },
+    {
+      "neurons": 10000,
+      "edges": 100000,
+      "steps": 1000,
+      "median_ms": 0.24158348969649523,
+      "p95_ms": 1.1350872024195269,
+      "memory_mb": 4.4918060302734375,
+      "spikes_per_neuron": 339.0306
+    },
+    {
+      "neurons": 20000,
+      "edges": 200000,
+      "steps": 1000,
+      "median_ms": 0.5160419968888164,
+      "p95_ms": 2.4479374842485413,
+      "memory_mb": 8.983612060546875,
+      "spikes_per_neuron": 339.85685
+    }
+  ]
+}

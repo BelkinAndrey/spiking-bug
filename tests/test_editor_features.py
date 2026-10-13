@@ -61,6 +61,50 @@ class GenerationTests(unittest.TestCase):
         self.assertGreater(len(connect_ganglia(net, params)["synapses"]), 0)
         self.assertLess(len(connect_ganglia(net, params)["synapses"]), 9)
 
+    def test_projection_filters_both_ends_for_every_connection_kind(self):
+        net = fixture()
+        net["neurons"][2]["polarity"] = "mixed"
+        net["neurons"][-1]["polarity"] = "mixed"
+        choices = {"any": (0, 1, 2), "exc": (0,), "inh": (1,)}
+        for kind in ("direct", "mod_exc", "mod_inh"):
+            params = dict(source="a", target="b", kind=kind, density=1, weight=-0.8)
+            for source_polarity, sources in choices.items():
+                for target_polarity, targets in choices.items():
+                    with self.subTest(kind=kind, source=source_polarity, target=target_polarity):
+                        filtered = {
+                            **params,
+                            "source_polarity": source_polarity,
+                            "target_polarity": target_polarity,
+                        }
+                        result = connect_ganglia(net, filtered)
+                        self.assertEqual(
+                            {(s["source"], s["target"]) for s in result["synapses"]},
+                            {(f"a{src}", f"b{dst}") for src in sources for dst in targets},
+                        )
+                        for s in result["synapses"]:
+                            self.assertEqual(
+                                s["weight"],
+                                0.8 if kind == "direct" and s["source"] == "a0" else -0.8,
+                            )
+                        self.assertEqual(connect_ganglia(result, filtered), result)
+            self.assertEqual(
+                connect_ganglia(net, params),
+                connect_ganglia(
+                    net, {**params, "source_polarity": "any", "target_polarity": "any"}
+                ),
+            )
+
+    def test_projection_filters_empty_and_invalid(self):
+        net = fixture()
+        for n in net["neurons"]:
+            n["polarity"] = "mixed"
+        params = dict(source="a", target="b", density=1)
+        for key in ("source_polarity", "target_polarity"):
+            for polarity in ("exc", "inh"):
+                self.assertEqual(connect_ganglia(net, {**params, key: polarity}), net)
+            with self.assertRaises(ValueError):
+                connect_ganglia(net, {**params, key: "invalid"})
+
 
 class RuntimeEditingTests(unittest.TestCase):
     def test_ganglion_move_is_atomic_preserves_state_and_only_moves_members(self):

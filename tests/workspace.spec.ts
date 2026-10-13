@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, russianStorageState } from "./fixtures";
 
 test("two independent clients share bindings, topology, playback and persistence", async ({
   browser,
@@ -7,7 +7,7 @@ test("two independent clients share bindings, topology, playback and persistence
   const original = await (
     await request.get("http://127.0.0.1:8010/api/project")
   ).json();
-  const context = await browser.newContext();
+  const context = await browser.newContext({ storageState: russianStorageState });
   const env = await context.newPage(),
     editor = await context.newPage();
   const errors: string[] = [];

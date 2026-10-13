@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { Connection, escape, handle, toast } from "./api";
 import { Viewport, circle, type Point } from "./canvas";
 import { field, select, onForm } from "./forms";
@@ -31,13 +32,13 @@ export class EnvironmentView {
   }
   toolbar() {
     return [
-      ["pan", "↔", "Панорама"],
-      ["food", "●", "Добавить пищу"],
-      ["obstacle", "▧", "Нарисовать препятствие"],
-      ["threat", "◈", "Добавить угрозу"],
-      ["zone", "▦", "Зона появления пищи"],
-      ["spawn", "⌖", "Переместить жука"],
-      ["erase", "⌫", "Удалить объект"],
+      ["pan", "↔", t("Панорама")],
+      ["food", "●", t("Добавить пищу")],
+      ["obstacle", "▧", t("Нарисовать препятствие")],
+      ["threat", "◈", t("Добавить угрозу")],
+      ["zone", "▦", t("Зона появления пищи")],
+      ["spawn", "⌖", t("Переместить жука")],
+      ["erase", "⌫", t("Удалить объект")],
     ];
   }
   setTool(tool: string) {
@@ -50,13 +51,13 @@ export class EnvironmentView {
       );
     document.getElementById("stage-hint")!.textContent = (
       {
-        pan: "Перетаскивание — панорама · колесо — масштаб",
-        food: "Щёлкните по арене, чтобы добавить пищу",
-        obstacle: "Потяните по диагонали, чтобы построить стену",
-        threat: "Щёлкните по арене, чтобы добавить угрозу",
-        zone: "Нарисуйте прямоугольную область появления пищи",
-        spawn: "Щёлкните в свободном месте для переноса жука",
-        erase: "Щёлкните по объекту, чтобы удалить его",
+        pan: t("Перетаскивание — панорама · колесо — масштаб"),
+        food: t("Щёлкните по арене, чтобы добавить пищу"),
+        obstacle: t("Потяните по диагонали, чтобы построить стену"),
+        threat: t("Щёлкните по арене, чтобы добавить угрозу"),
+        zone: t("Нарисуйте прямоугольную область появления пищи"),
+        spawn: t("Щёлкните в свободном месте для переноса жука"),
+        erase: t("Щёлкните по объекту, чтобы удалить его"),
       } as Record<string, string>
     )[tool];
   }
@@ -64,9 +65,9 @@ export class EnvironmentView {
     const p = this.api.project,
       c = p.world.config;
     this.side.innerHTML = `<div class="side-tabs">${[
-      ["world", "Мир"],
-      ["agent", "Жук"],
-      ["bridge", "Нейроны"],
+      ["world", t("Мир")],
+      ["agent", t("Жук")],
+      ["bridge", t("Нейроны")],
     ]
       .map(
         ([id, t]) =>
@@ -82,23 +83,23 @@ export class EnvironmentView {
     );
     const content = this.side.querySelector<HTMLElement>("#side-content")!;
     if (this.tab === "world") {
-      content.innerHTML = `<form id="world-form"><div class="section"><div class="row spread"><h3>Арена</h3><span class="pill">2D · BUG</span></div><div class="fields">${field("width", "Ширина", c.width, 100, 400, 12000)}${field("height", "Высота", c.height, 100, 400, 12000)}${field("seed", "Seed мира", c.seed, 1, 0, 2147483647)}</div></div>
-      <div class="section"><h3>Пища</h3><div class="fields">${field("food_target", "Целевое количество", c.food_target, 1, 0, 500)}${field("food_interval", "Интервал появления, с", c.food_interval, 0.1, 0.01, 60)}</div><p class="help">Новые порции появляются до целевого количества. Инструмент ▦ ограничивает появление выбранными зонами.</p></div>
-      <div class="section"><h3>Угрозы</h3><div class="fields">${select("threat_mode", "Поведение", c.threat_mode, { pursuit: "Преследование", static: "Статичные" }, true)}${field("threat_target", "Количество", c.threat_target, 1, 0, 100)}${field("threat_radius", "Радиус обзора", c.threat_radius, 10, 20, 2000)}${field("threat_speed_ratio", "Скорость / скорость жука", c.threat_speed_ratio, 0.01, 0.05, 0.95)}${field("chase_duration", "Интерес, с", c.chase_duration, 0.5, 0.1, 120)}${field("cooldown", "Отдых после погони, с", c.cooldown, 0.5, 0.1, 120)}${field("threat_lifetime", "Время жизни, с", c.threat_lifetime, 1, 1, 3600)}</div><p class="help">Угроза видит жука в пределах радиуса, если между ними нет стены. Теряет интерес при потере видимости или по таймеру.</p><button class="primary wide" type="submit">Применить настройки</button></div></form>
-      <form id="maze-form" class="section"><h3>Генератор лабиринта</h3><div class="fields">${field("cols", "Столбцы", 12, 1, 2, 40)}${field("rows", "Строки", 8, 1, 2, 40)}${field("seed", "Seed лабиринта", 42, 1, 0, 2147483647)}</div><p class="help">Создаёт связный лабиринт и переносит жука ко входу. Заменяет текущие объекты и зоны.</p><button class="wide">Сгенерировать лабиринт</button><button type="button" class="wide" id="clear-walls">Убрать все стены</button></form>
-      <div class="section"><h3>Сценарий мира</h3><p class="help">JSON-описание объектов и зон; можно создать своим скриптом и импортировать целый эксперимент.</p><button id="scenario" class="wide">Редактировать JSON мира</button></div>`;
+      content.innerHTML = `<form id="world-form"><div class="section"><div class="row spread"><h3>${t("Арена")}</h3><span class="pill">2D · BUG</span></div><div class="fields">${field("width", t("Ширина"), c.width, 100, 400, 12000)}${field("height", t("Высота"), c.height, 100, 400, 12000)}${field("seed", t("Seed мира"), c.seed, 1, 0, 2147483647)}</div></div>
+      <div class="section"><h3>${t("Пища")}</h3><div class="fields">${field("food_target", t("Целевое количество"), c.food_target, 1, 0, 500)}${field("food_interval", t("Интервал появления, с"), c.food_interval, 0.1, 0.01, 60)}</div><p class="help">${t("Новые порции появляются до целевого количества. Инструмент ▦ ограничивает появление выбранными зонами.")}</p></div>
+      <div class="section"><h3>${t("Угрозы")}</h3><div class="fields">${select("threat_mode", t("Поведение"), c.threat_mode, { pursuit: t("Преследование"), static: t("Статичные") }, true)}${field("threat_target", t("Количество"), c.threat_target, 1, 0, 100)}${field("threat_radius", t("Радиус обзора"), c.threat_radius, 10, 20, 2000)}${field("threat_speed_ratio", t("Скорость / скорость жука"), c.threat_speed_ratio, 0.01, 0.05, 0.95)}${field("chase_duration", t("Интерес, с"), c.chase_duration, 0.5, 0.1, 120)}${field("cooldown", t("Отдых после погони, с"), c.cooldown, 0.5, 0.1, 120)}${field("threat_lifetime", t("Время жизни, с"), c.threat_lifetime, 1, 1, 3600)}</div><p class="help">${t("Угроза видит жука в пределах радиуса, если между ними нет стены. Теряет интерес при потере видимости или по таймеру.")}</p><button class="primary wide" type="submit">${t("Применить настройки")}</button></div></form>
+      <form id="maze-form" class="section"><h3>${t("Генератор лабиринта")}</h3><div class="fields">${field("cols", t("Столбцы"), 12, 1, 2, 40)}${field("rows", t("Строки"), 8, 1, 2, 40)}${field("seed", t("Seed лабиринта"), 42, 1, 0, 2147483647)}</div><p class="help">${t("Создаёт связный лабиринт и переносит жука ко входу. Заменяет текущие объекты и зоны.")}</p><button class="wide">${t("Сгенерировать лабиринт")}</button><button type="button" class="wide" id="clear-walls">${t("Убрать все стены")}</button></form>
+      <div class="section"><h3>${t("Сценарий мира")}</h3><p class="help">${t("JSON-описание объектов и зон; можно создать своим скриптом и импортировать целый эксперимент.")}</p><button id="scenario" class="wide">${t("Редактировать JSON мира")}</button></div>`;
       onForm(content, "world-form", (v) =>
         handle(
           this.api
             .command("world_config", v)
-            .then(() => toast("Настройки мира сохранены")),
+            .then(() => toast(t("Настройки мира сохранены"))),
         ),
       );
       onForm(content, "maze-form", (v) =>
         handle(
           this.api.command("maze", v).then(() => {
             this.fit();
-            toast("Лабиринт создан");
+            toast(t("Лабиринт создан"));
           }),
         ),
       );
@@ -107,8 +108,8 @@ export class EnvironmentView {
       content.querySelector<HTMLElement>("#scenario")!.onclick = () =>
         this.scenario();
     } else if (this.tab === "agent") {
-      content.innerHTML = `<div class="section"><h3>Наблюдение</h3><label class="row"><input type="checkbox" id="show-sensors" ${this.sensors ? "checked" : ""}> Показывать сенсоры и обзор угроз</label><div class="spacer"></div><label class="row"><input type="checkbox" id="follow" ${this.follow ? "checked" : ""}> Следовать за жуком</label><p class="help">W / A / S / D или стрелки — прямое ручное управление. Работает и на паузе; отпустите клавиши, чтобы вернуть управление сети.</p><div class="button-row"><button data-motor="left">↶ A</button><button data-motor="forward">↑ W</button><button data-motor="right">D ↷</button><button data-motor="backward">↓ S</button></div></div>
-      <form id="agent-form" class="section"><h3>Тело и восприятие</h3><div class="fields">${field("speed", "Скорость движения", c.speed, 10, 10, 400)}${field("turn_speed", "Поворот, рад/с", c.turn_speed, 0.1, 0.1, 10)}${field("sensor_range", "Дальность сенсоров", c.sensor_range, 10, 20, 2000)}${field("lidar_range", "Дальность лидара", c.lidar_range, 10, 20, 2000)}${field("hunger_rate", "Рост голода / с", c.hunger_rate, 0.001, 0, 1)}${field("fatigue_gain", "Усталость / спайк", c.fatigue_gain, 0.001, 0, 1)}${field("fatigue_decay", "Восстановление / с", c.fatigue_decay, 0.01, 0, 1)}</div><button class="primary wide">Применить параметры</button></form><div class="section"><h3>Сенсорные токи · 0…1</h3><div id="sensor-values" class="spark-table"></div></div>`;
+      content.innerHTML = `<div class="section"><h3>${t("Наблюдение")}</h3><label class="row"><input type="checkbox" id="show-sensors" ${this.sensors ? "checked" : ""}> ${t("Показывать сенсоры и обзор угроз")}</label><div class="spacer"></div><label class="row"><input type="checkbox" id="follow" ${this.follow ? "checked" : ""}> ${t("Следовать за жуком")}</label><p class="help">${t("W / A / S / D или стрелки — прямое ручное управление. Работает и на паузе; отпустите клавиши, чтобы вернуть управление сети.")}</p><div class="button-row"><button data-motor="left">↶ A</button><button data-motor="forward">↑ W</button><button data-motor="right">D ↷</button><button data-motor="backward">↓ S</button></div></div>
+      <form id="agent-form" class="section"><h3>${t("Тело и восприятие")}</h3><div class="fields">${field("speed", t("Скорость движения"), c.speed, 10, 10, 400)}${field("turn_speed", t("Поворот, рад/с"), c.turn_speed, 0.1, 0.1, 10)}${field("sensor_range", t("Дальность сенсоров"), c.sensor_range, 10, 20, 2000)}${field("lidar_range", t("Дальность лидара"), c.lidar_range, 10, 20, 2000)}${field("hunger_rate", t("Рост голода / с"), c.hunger_rate, 0.001, 0, 1)}${field("fatigue_gain", t("Усталость / спайк"), c.fatigue_gain, 0.001, 0, 1)}${field("fatigue_decay", t("Восстановление / с"), c.fatigue_decay, 0.01, 0, 1)}</div><button class="primary wide">${t("Применить параметры")}</button></form><div class="section"><h3>${t("Сенсорные токи · 0…1")}</h3><div id="sensor-values" class="spark-table"></div></div>`;
       content.querySelector<HTMLInputElement>("#show-sensors")!.onchange = (
         e,
       ) => (this.sensors = (e.target as HTMLInputElement).checked);
@@ -137,28 +138,28 @@ export class EnvironmentView {
         b.onlostpointercapture = stop;
       });
     } else {
-      content.innerHTML = `<form id="bindings-form" class="section"><h3>Мост окружение ↔ сеть</h3><p class="help" style="margin-bottom:16px">Выберите ID нейрона для каждого канала. Назначения общие для обоих интерфейсов. Один нейрон может получать несколько сенсорных токов.</p>${Object.entries(
+      content.innerHTML = `<form id="bindings-form" class="section"><h3>${t("Мост окружение ↔ сеть")}</h3><p class="help" style="margin-bottom:16px">${t("Выберите ID нейрона для каждого канала. Назначения общие для обоих интерфейсов. Один нейрон может получать несколько сенсорных токов.")}</p>${Object.entries(
         labels,
       )
         .map(
           ([id, label]) =>
-            `<div class="binding"><label for="b-${id}">${label}</label><select id="b-${id}" name="${id}"><option value="">Не назначен</option>${p.topology.neurons.map((n) => `<option value="${escape(n.id)}" ${p.bindings[id] === n.id ? "selected" : ""}>${escape(n.id)}</option>`).join("")}</select></div>`,
+            `<div class="binding"><label for="b-${id}">${label}</label><select id="b-${id}" name="${id}"><option value="">${t("Не назначен")}</option>${p.topology.neurons.map((n) => `<option value="${escape(n.id)}" ${p.bindings[id] === n.id ? "selected" : ""}>${escape(n.id)}</option>`).join("")}</select></div>`,
         )
         .join(
           "",
-        )}<button class="primary wide">Сохранить назначения</button></form>`;
+        )}<button class="primary wide">${t("Сохранить назначения")}</button></form>`;
       onForm(content, "bindings-form", (v) =>
         handle(
           this.api
             .command("bindings", v)
-            .then(() => toast("Назначения обновлены в обоих клиентах")),
+            .then(() => toast(t("Назначения обновлены в обоих клиентах"))),
         ),
       );
     }
   }
   scenario() {
     const d = document.createElement("dialog");
-    d.innerHTML = `<h2>Сценарий мира</h2><p>Объекты, зоны, точка старта и настройки. Применение остановит и перезапустит эксперимент.</p><textarea aria-label="JSON мира"></textarea><div class="button-row"><button id="cancel">Отмена</button><button id="apply" class="primary">Применить</button></div>`;
+    d.innerHTML = `<h2>${t("Сценарий мира")}</h2><p>${t("Объекты, зоны, точка старта и настройки. Применение остановит и перезапустит эксперимент.")}</p><textarea aria-label="${t("JSON мира")}"></textarea><div class="button-row"><button id="cancel">${t("Отмена")}</button><button id="apply" class="primary">${t("Применить")}</button></div>`;
     document.body.append(d);
     d.querySelector("textarea")!.value = JSON.stringify(
       this.api.project.world,
@@ -366,7 +367,7 @@ export class EnvironmentView {
     );
     c.fillStyle = "#c5d2bc";
     c.font = "10px ui-monospace";
-    c.fillText("BUG / 01", screen.x + 20, screen.y - 17);
+    c.fillText(t("ЖУК / 01"), screen.x + 20, screen.y - 17);
     c.restore();
     if (this.drag && ["obstacle", "zone"].includes(this.tool)) {
       const d = this.drag;
@@ -425,12 +426,12 @@ export class EnvironmentView {
       c.font = `${9 / this.view.zoom}px ui-monospace`;
       c.fillText(
         o.mode === "static"
-          ? "STATIC"
+          ? t("СТАТИЧНАЯ")
           : o.state === "chasing"
-            ? "CHASE"
+            ? t("ПОГОНЯ")
             : o.state === "rest"
-              ? "REST"
-              : "IDLE",
+              ? t("ОТДЫХ")
+              : t("ОЖИДАНИЕ"),
         o.x + 22,
         o.y + 3,
       );

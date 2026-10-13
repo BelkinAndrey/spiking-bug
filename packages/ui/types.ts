@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 export type Mode = "environment" | "editor";
 export interface Neuron {
   id: string;
@@ -163,21 +164,21 @@ export interface ComputeDevices {
   devices: { id: string; label: string; available: boolean; reason: string }[];
 }
 export const labels: Record<string, string> = {
-  food_left: "Пища · слева",
-  food_right: "Пища · справа",
-  threat_left: "Угроза · слева",
-  threat_right: "Угроза · справа",
-  hunger: "Голод",
-  fatigue: "Усталость",
-  lidar_0: "Лидар · −50°",
-  lidar_1: "Лидар · −25°",
-  lidar_2: "Лидар · центр",
-  lidar_3: "Лидар · +25°",
-  lidar_4: "Лидар · +50°",
-  forward: "Вперёд",
-  backward: "Назад",
-  left: "Поворот влево",
-  right: "Поворот вправо",
+  food_left: t("Пища · слева"),
+  food_right: t("Пища · справа"),
+  threat_left: t("Угроза · слева"),
+  threat_right: t("Угроза · справа"),
+  hunger: t("Голод"),
+  fatigue: t("Усталость"),
+  lidar_0: t("Лидар · −50°"),
+  lidar_1: t("Лидар · −25°"),
+  lidar_2: t("Лидар · центр"),
+  lidar_3: t("Лидар · +25°"),
+  lidar_4: t("Лидар · +50°"),
+  forward: t("Вперёд"),
+  backward: t("Назад"),
+  left: t("Поворот влево"),
+  right: t("Поворот вправо"),
 };
 export const neuronDefaults: Omit<Neuron, "id" | "x" | "y"> = {
   label: "Neuron",

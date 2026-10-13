@@ -9,6 +9,7 @@ from .schema import DT, SENSORS, number, world_config
 
 class World:
     radius = 12.0
+    exhaustion_damage_rate = 0.01  # Health per simulated second of movement at full fatigue.
 
     def __init__(self, data):
         self.config = world_config(data.get("config", {}))
@@ -233,6 +234,8 @@ class World:
         a = self.agent
         self.elapsed += DT
         if a["health"] > 0:
+            exhausted = a["fatigue"] >= 1.0
+            pose = (a["x"], a["y"], a["heading"])
             self.drive(motors if manual is None else manual, 0.04 if manual is None else DT)
             a["hunger"] = min(1.0, a["hunger"] + c["hunger_rate"] * DT)
             a["fatigue"] = max(
@@ -244,6 +247,11 @@ class World:
                     - c["fatigue_decay"] * DT,
                 ),
             )
+            moved = pose != (a["x"], a["y"], a["heading"])
+            if moved and (exhausted or a["fatigue"] >= 1.0):
+                damage = min(a["health"], self.exhaustion_damage_rate * DT)
+                a["health"] -= damage
+                a["damage"] += damage
         for o in list(self.objects):
             d = math.hypot(o["x"] - a["x"], o["y"] - a["y"])
             if o["kind"] == "food" and d < self.radius + 7 and a["health"] > 0:

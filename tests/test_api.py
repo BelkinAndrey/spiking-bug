@@ -6,7 +6,7 @@ import unittest
 import numpy as np
 from server.app import create_app
 from server.runtime import Runtime
-from server.schema import topology
+from server.schema import topology, default_topology, default_bindings, SENSORS, MOTORS
 
 
 class APITests(unittest.TestCase):
@@ -36,6 +36,47 @@ class APITests(unittest.TestCase):
             self.assertTrue(
                 all(n["reset_mode"] == "reset" for n in self.runtime.net.topology["neurons"])
             )
+
+    def test_new_document_restores_bound_default_network_and_preserves_arena(self):
+        self.command("ganglion", dict(id="custom", count=4, density=0))
+        self.command("bindings", {**self.runtime.bindings, "forward": "explore"})
+        for _ in range(12):
+            self.runtime.step()
+        self.command("inject", dict(id="drive", current=2))
+        self.command("manual", dict(forward=True))
+        self.command("control", dict(mode="play"))
+        world = copy.deepcopy(self.runtime.world.snapshot())
+        revision, session = self.runtime.revision, self.runtime.session
+        response = self.command("new_document")
+        self.assertEqual(response.status_code, 200, response.json)
+        self.assertEqual(response.json["revision"], revision + 1)
+        self.assertGreater(self.runtime.session, session)
+        self.assertEqual(self.runtime.net.topology, default_topology())
+        self.assertEqual(self.runtime.bindings, default_bindings())
+        nodes = {n["id"]: n for n in self.runtime.net.topology["neurons"]}
+        for channel in SENSORS + MOTORS:
+            self.assertEqual(
+                nodes[self.runtime.bindings[channel]]["kind"],
+                "sensor" if channel in SENSORS else "motor",
+            )
+        self.assertFalse(self.runtime.running)
+        self.assertFalse(self.runtime.manual)
+        self.assertFalse(self.runtime.inject)
+        self.assertFalse(self.runtime.history)
+        self.assertEqual(self.runtime.ticks, 0)
+        self.assertFalse(self.runtime.net.V.any())
+        self.assertFalse(self.runtime.net.queue.any())
+        self.assertEqual(self.runtime.world.snapshot(), world)
+        restarted = Runtime(self.path)
+        self.assertEqual(restarted.net.topology, default_topology())
+        self.assertEqual(restarted.bindings, default_bindings())
+
+    def test_stale_new_document_does_not_replace_network(self):
+        self.command("ganglion", dict(id="custom", count=4, density=0))
+        before = copy.deepcopy(self.runtime.project())
+        response = self.command("new_document", revision=self.runtime.revision - 1)
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(self.runtime.project(), before)
 
     def test_invalid_import_is_atomic(self):
         before = copy.deepcopy(self.runtime.project())

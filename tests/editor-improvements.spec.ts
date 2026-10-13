@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 const api = "http://127.0.0.1:8010";
 const getProject = async (request: any) =>
   (await request.get(api + "/api/project")).json();
@@ -44,6 +44,69 @@ function fixture() {
     },
   };
 }
+
+test("ganglion projection filters source and target neurons independently", async ({
+  page,
+  request,
+}) => {
+  const original = await getProject(request);
+  try {
+    const project = fixture();
+    await cmd(request, "import", {
+      ...project,
+      topology: {
+        ...project.topology,
+        neurons: project.topology.neurons.map((n) => ({
+          ...n,
+          polarity: n.id.endsWith("0")
+            ? "exc"
+            : n.id.endsWith("1")
+              ? "inh"
+              : "mixed",
+        })),
+      },
+    });
+    await page.goto("http://127.0.0.1:5184");
+    await expect(page.getByText("Синхронизировано")).toBeVisible();
+    await page
+      .getByRole("button", { name: "Связать ганглии", exact: true })
+      .click();
+    const form = page.locator("#projection-form");
+    await expect(form.getByLabel("Нейроны-источники")).toHaveValue("any");
+    await expect(form.getByLabel("Целевые нейроны")).toHaveValue("any");
+    await form.getByLabel(/^Источник/).selectOption("a");
+    await form.getByLabel("Получатель").selectOption("b");
+    const expectedPairs = new Set<string>();
+    const members = { any: [0, 1, 2, 3], exc: [0], inh: [1] };
+    for (const [sourcePolarity, targetPolarity] of [
+      ["exc", "inh"],
+      ["inh", "exc"],
+      ["exc", "any"],
+      ["any", "inh"],
+      ["any", "any"],
+    ] as const) {
+      for (const src of members[sourcePolarity])
+        for (const dst of members[targetPolarity])
+          expectedPairs.add(`a${src}->b${dst}`);
+      await form.getByLabel("Нейроны-источники").selectOption(sourcePolarity);
+      await form.getByLabel("Целевые нейроны").selectOption(targetPolarity);
+      await form.getByLabel("Вероятность связи").fill("1");
+      await form
+        .getByRole("button", { name: "Сгенерировать связи", exact: true })
+        .click();
+      await expect(form.getByLabel("Вероятность связи")).toHaveValue("0.1");
+      await expect
+        .poll(async () => (await getProject(request)).topology.synapses.length)
+        .toBe(expectedPairs.size);
+      const edges = (await getProject(request)).topology.synapses;
+      expect(edges.map((s: any) => `${s.source}->${s.target}`).sort()).toEqual(
+        [...expectedPairs].sort(),
+      );
+    }
+  } finally {
+    await cmd(request, "import", original);
+  }
+});
 
 test("arrow keys and physical WASD move and release while paused without bindings", async ({
   page,

@@ -13,7 +13,8 @@ from .runtime import Runtime, Conflict
 
 def create_app(runtime):
     app = Flask(__name__)
-    app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
+    # Large generated topologies must also support import and structural edits.
+    app.config["MAX_CONTENT_LENGTH"] = 512 * 1024 * 1024
 
     @app.get("/api/health")
     def health():

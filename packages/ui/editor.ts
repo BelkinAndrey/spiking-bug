@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import { Connection, escape, handle, toast, uid } from "./api";
 import { Viewport, circle, type Point } from "./canvas";
 import { field, input, select, onForm } from "./forms";
@@ -79,6 +80,20 @@ export class EditorView {
       }
     });
   }
+  resetDocument() {
+    this.selected.clear();
+    this.selectedEdge = undefined;
+    this.selectedGanglion = undefined;
+    this.selectedFrame = undefined;
+    this.drag = undefined;
+    this.clipboard = undefined;
+    this.undo = [];
+    this.flashes.clear();
+    this.counts.clear();
+    this.tab = "inspect";
+    this.setTool("select");
+    this.fit();
+  }
   rebuild() {
     this.nodes = new Map(
       this.api.project.topology.neurons.map((n) => [n.id, n]),
@@ -95,25 +110,34 @@ export class EditorView {
       this.view.fit(0, 0, 1000, 700);
       return;
     }
-    const xs = ns.map((n) => n.x),
-      ys = ns.map((n) => n.y);
-    this.view.fit(
-      Math.min(...xs) - 70,
-      Math.min(...ys) - 90,
-      Math.max(...xs) - Math.min(...xs) + 200,
-      Math.max(...ys) - Math.min(...ys) + 160,
-    );
+    let left = Infinity,
+      top = Infinity,
+      right = -Infinity,
+      bottom = -Infinity;
+    for (const n of ns) {
+      left = Math.min(left, n.x);
+      top = Math.min(top, n.y);
+      right = Math.max(right, n.x);
+      bottom = Math.max(bottom, n.y);
+    }
+    for (const g of this.groups.values()) {
+      left = Math.min(left, g.x - g.radius);
+      top = Math.min(top, g.y - g.radius);
+      right = Math.max(right, g.x + g.radius);
+      bottom = Math.max(bottom, g.y + g.radius);
+    }
+    this.view.fit(left - 70, top - 90, right - left + 200, bottom - top + 160);
   }
   toolbar() {
     return [
-      ["select", "↖", "Выбрать / переместить"],
-      ["pan", "↔", "Панорама"],
-      ["neuron", "⊕", "Создать нейрон"],
-      ["connect", "↗", "Создать синапс"],
-      ["ganglion", "◉", "Нарисовать ганглий"],
-      ["projection", "⇢", "Связать ганглии"],
-      ["box", "▣", "Выделить область"],
-      ["frame", "▱", "Создать рамку"],
+      ["select", "↖", t("Выбрать / переместить")],
+      ["pan", "↔", t("Панорама")],
+      ["neuron", "⊕", t("Создать нейрон")],
+      ["connect", "↗", t("Создать синапс")],
+      ["ganglion", "◉", t("Нарисовать ганглий")],
+      ["projection", "⇢", t("Связать ганглии")],
+      ["box", "▣", t("Выделить область")],
+      ["frame", "▱", t("Создать рамку")],
     ];
   }
   setTool(tool: string) {
@@ -129,15 +153,16 @@ export class EditorView {
       tool === "pan" ? "grab" : tool === "select" ? "default" : "crosshair";
     document.getElementById("stage-hint")!.textContent = (
       {
-        select:
+        select: t(
           "Перетаскивание — переместить · Shift — добавить к выбору · ⌘C / ⌘V",
-        pan: "Перетаскивание — панорама · колесо — масштаб",
-        neuron: "Щёлкните по полю, чтобы создать нейрон",
-        connect: "Выберите источник, затем нейрон или коннектор ганглия",
-        ganglion: "От центра потяните до края будущего ганглия",
-        box: "Выделите прямоугольную область",
-        frame: "Нарисуйте рамку вокруг функциональной группы",
-        projection: "Выберите ганглий-источник, затем ганглий-получатель",
+        ),
+        pan: t("Перетаскивание — панорама · колесо — масштаб"),
+        neuron: t("Щёлкните по полю, чтобы создать нейрон"),
+        connect: t("Выберите источник, затем нейрон или коннектор ганглия"),
+        ganglion: t("От центра потяните до края будущего ганглия"),
+        box: t("Выделите прямоугольную область"),
+        frame: t("Нарисуйте рамку вокруг функциональной группы"),
+        projection: t("Выберите ганглий-источник, затем ганглий-получатель"),
       } as Record<string, string>
     )[tool];
     if (tool === "projection") this.tab = "inspect";
@@ -155,7 +180,7 @@ export class EditorView {
       handle(
         this.api
           .command("topology", topology)
-          .then(() => toast("Предыдущее изменение восстановлено")),
+          .then(() => toast(t("Предыдущее изменение восстановлено"))),
       );
   }
   copy() {
@@ -170,7 +195,7 @@ export class EditorView {
         ),
       ),
     };
-    toast(`Скопировано нейронов: ${this.clipboard.neurons.length}`);
+    toast(t("Скопировано нейронов: {0}", this.clipboard.neurons.length));
   }
   paste() {
     if (!this.clipboard?.neurons.length) return;
@@ -235,9 +260,9 @@ export class EditorView {
   renderSide() {
     this.rebuild();
     this.side.innerHTML = `<div class="side-tabs">${[
-      ["inspect", "Инспектор"],
-      ["build", "Генератор"],
-      ["list", "Нейроны"],
+      ["inspect", t("Инспектор")],
+      ["build", t("Генератор")],
+      ["list", t("Нейроны")],
     ]
       .map(
         ([id, t]) =>
@@ -270,7 +295,7 @@ export class EditorView {
       return;
     }
     if (this.tab === "list") {
-      content.innerHTML = `<div class="section"><h3>Нервная система</h3><input id="neuron-search" class="search" placeholder="Поиск по ID или имени" aria-label="Поиск нейронов"><div class="list" id="neuron-list"></div><p class="help">Показаны первые 200 совпадений. Выбор нейрона открывает параметры и центрирует поле.</p></div>`;
+      content.innerHTML = `<div class="section"><h3>${t("Нервная система")}</h3><input id="neuron-search" class="search" placeholder="${t("Поиск по ID или имени")}" aria-label="${t("Поиск нейронов")}"><div class="list" id="neuron-list"></div><p class="help">${t("Показаны первые 200 совпадений. Выбор нейрона открывает параметры и центрирует поле.")}</p></div>`;
       const render = (q = "") => {
         const ns = this.api.project.topology.neurons
           .filter((n) =>
@@ -308,7 +333,7 @@ export class EditorView {
       (f) => f.id === this.selectedFrame,
     );
     if (frame) {
-      content.innerHTML = `<form id="frame-form" class="section"><h3>Визуальная рамка</h3><div class="fields">${input("label", "Название", frame.label, true)}${input("color", "Цвет", frame.color, true)}${field("x", "X", frame.x)}${field("y", "Y", frame.y)}${field("w", "Ширина", frame.w, "any", 1, 100000)}${field("h", "Высота", frame.h, "any", 1, 100000)}<label class="full">Комментарий<textarea name="comment">${escape(frame.comment)}</textarea></label></div><button class="primary wide">Сохранить рамку</button><button type="button" class="wide danger" id="delete-frame">Удалить только рамку</button><p class="help">Рамка — визуальная аннотация. Она не меняет связи и не создаёт коннектор.</p></form>`;
+      content.innerHTML = `<form id="frame-form" class="section"><h3>${t("Визуальная рамка")}</h3><div class="fields">${input("label", t("Название"), frame.label, true)}${input("color", t("Цвет"), frame.color, true)}${field("x", "X", frame.x)}${field("y", "Y", frame.y)}${field("w", t("Ширина"), frame.w, "any", 1, 100000)}${field("h", t("Высота"), frame.h, "any", 1, 100000)}<label class="full">${t("Комментарий")}<textarea name="comment">${escape(frame.comment)}</textarea></label></div><button class="primary wide">${t("Сохранить рамку")}</button><button type="button" class="wide danger" id="delete-frame">${t("Удалить только рамку")}</button><p class="help">${t("Рамка — визуальная аннотация. Она не меняет связи и не создаёт коннектор.")}</p></form>`;
       onForm(content, "frame-form", (v) => {
         const net = structuredClone(this.api.project.topology);
         net.groups = net.groups.map((f) =>
@@ -330,7 +355,7 @@ export class EditorView {
       return;
     }
     if (g) {
-      content.innerHTML = `<div class="section"><h3>Ганглий</h3><h2>${escape(g.label)}</h2><p class="mono subtle">${escape(g.id)}</p><div class="live-values">${g.members.length} нейронов · r = ${g.radius.toFixed(0)}</div><p class="help">Ромб справа — входной коннектор. Связь к нему доставляет один и тот же сигнал всем участникам ганглия. Коннектор сам не генерирует спайки.</p><button class="wide" id="select-members">Выделить все нейроны</button><button class="wide" id="rename-group">Переименовать</button><button class="wide danger" id="delete">Удалить ганглий и его нейроны</button></div>`;
+      content.innerHTML = `<div class="section"><h3>${t("Ганглий")}</h3><h2>${escape(g.label)}</h2><p class="mono subtle">${escape(g.id)}</p><div class="live-values">${g.members.length} ${t("нейронов · r =")} ${g.radius.toFixed(0)}</div><p class="help">${t("Ромб справа — входной коннектор. Связь к нему доставляет один и тот же сигнал всем участникам ганглия. Коннектор сам не генерирует спайки.")}</p><button class="wide" id="select-members">${t("Выделить все нейроны")}</button><button class="wide" id="rename-group">${t("Переименовать")}</button><button class="wide danger" id="delete">${t("Удалить ганглий и его нейроны")}</button></div>`;
       content.querySelector<HTMLElement>("#select-members")!.onclick = () => {
         this.selected = new Set(g.members);
         this.selectedGanglion = undefined;
@@ -338,7 +363,7 @@ export class EditorView {
         this.renderSide();
       };
       content.querySelector<HTMLElement>("#rename-group")!.onclick = () => {
-        const label = prompt("Название ганглия", g.label);
+        const label = prompt(t("Название ганглия"), g.label);
         if (label) {
           const net = structuredClone(this.api.project.topology);
           net.ganglia.find((x) => x.id === g.id)!.label = label;
@@ -353,13 +378,13 @@ export class EditorView {
       const bound = Object.entries(this.api.project.bindings).filter(([, id]) =>
         this.selected.has(id),
       );
-      content.innerHTML = `<form id="neuron-form"><div class="section"><div class="row spread"><h3>${this.selected.size > 1 ? `${this.selected.size} нейронов` : "Нейрон"}</h3><span class="pill">LIF</span></div><p class="mono small subtle">${escape(n.id)}</p><div class="live-values" id="neuron-live">V — · E — · I —</div><div class="fields">${this.selected.size === 1 ? input("label", "Название", n.label, true) : ""}${field("threshold", "Порог", n.threshold, 0.05, -10000, 10000)}${field("leak", "Утечка / такт", n.leak, 0.01, 0, 1)}${field("refractory", "Рефрактерность, такты", n.refractory, 1, 0, 10000)}${field("bias", "Постоянный ток", n.bias, 0.01, -100, 100)}${field("noise_std", "Шум · σ / такт", n.noise_std, 0.01, 0, 100)}${field("v_min", "Нижняя граница V", n.v_min, 0.1, -10000, 0)}${select("reset_mode", "После спайка", n.reset_mode, { retain: "Сохранить потенциал", reset: "Сбросить потенциал в 0" }, true)}${select("polarity", "Полярность исходящих связей", n.polarity, { mixed: "Любой знак", exc: "Только возбуждающие", inh: "Только тормозящие" }, true)}</div><p class="help">Утечка и входящие токи действуют постоянно. Рефрактерный период запрещает только спайк. 1 такт = 10 мс.</p></div><div class="section"><h3>Модуляция чувствительности</h3><div class="fields">${field("mod_tau_exc", "Возврат E · τ, с", n.mod_tau_exc, 0.1, 0.01, 3600)}${field("mod_tau_inh", "Возврат I · τ, с", n.mod_tau_inh, 0.1, 0.01, 3600)}${field("mod_gain_exc", "Отклик E", n.mod_gain_exc, 0.1, 0, 100)}${field("mod_gain_inh", "Отклик I", n.mod_gain_inh, 0.1, 0, 100)}</div><p class="help">E — возбуждение, I — торможение. Коэффициенты возвращаются к 1 экспоненциально и ограничены диапазоном 0…10.</p><button class="primary wide">Применить ${this.selected.size > 1 ? "ко всем выбранным" : "параметры"}</button></div></form><div class="section"><h3>Связь с окружением</h3>${bound.length ? bound.map(([c, id]) => `<p class="help">${labels[c]} → <span class="mono">${escape(id)}</span></p>`).join("") : '<p class="help">Не назначен ни одному каналу. Назначения доступны во вкладке «Нейроны» окружения.</p>'}<div class="button-row"><button id="inject">Импульс +2</button><button id="connect">Связать ↗</button></div><div class="button-row"><button id="copy">Копировать</button><button class="danger" id="delete">Удалить</button></div></div>`;
+      content.innerHTML = `<form id="neuron-form"><div class="section"><div class="row spread"><h3>${this.selected.size > 1 ? t("{0} нейронов", this.selected.size) : t("Нейрон")}</h3><span class="pill">LIF</span></div><p class="mono small subtle">${escape(n.id)}</p><div class="live-values" id="neuron-live">V — · E — · I —</div><div class="fields">${this.selected.size === 1 ? input("label", t("Название"), n.label, true) : ""}${field("threshold", t("Порог"), n.threshold, 0.05, -10000, 10000)}${field("leak", t("Утечка / такт"), n.leak, 0.01, 0, 1)}${field("refractory", t("Рефрактерность, такты"), n.refractory, 1, 0, 10000)}${field("bias", t("Постоянный ток"), n.bias, 0.01, -100, 100)}${field("noise_std", t("Шум · σ / такт"), n.noise_std, 0.01, 0, 100)}${field("v_min", t("Нижняя граница V"), n.v_min, 0.1, -10000, 0)}${select("reset_mode", t("После спайка"), n.reset_mode, { retain: t("Сохранить потенциал"), reset: t("Сбросить потенциал в 0") }, true)}${select("polarity", t("Полярность исходящих связей"), n.polarity, { mixed: t("Любой знак"), exc: t("Только возбуждающие"), inh: t("Только тормозящие") }, true)}</div><p class="help">${t("Утечка и входящие токи действуют постоянно. Рефрактерный период запрещает только спайк. 1 такт = 10 мс.")}</p></div><div class="section"><h3>${t("Модуляция чувствительности")}</h3><div class="fields">${field("mod_tau_exc", t("Возврат E · τ, с"), n.mod_tau_exc, 0.1, 0.01, 3600)}${field("mod_tau_inh", t("Возврат I · τ, с"), n.mod_tau_inh, 0.1, 0.01, 3600)}${field("mod_gain_exc", t("Отклик E"), n.mod_gain_exc, 0.1, 0, 100)}${field("mod_gain_inh", t("Отклик I"), n.mod_gain_inh, 0.1, 0, 100)}</div><p class="help">${t("E — возбуждение, I — торможение. Коэффициенты возвращаются к 1 экспоненциально и ограничены диапазоном 0…10.")}</p><button class="primary wide">${this.selected.size > 1 ? t("Применить ко всем выбранным") : t("Применить параметры")}</button></div></form><div class="section"><h3>${t("Связь с окружением")}</h3>${bound.length ? bound.map(([c, id]) => `<p class="help">${labels[c]} → <span class="mono">${escape(id)}</span></p>`).join("") : `<p class="help">${t("Не назначен ни одному каналу. Назначения доступны во вкладке «Нейроны» окружения.")}</p>`}<div class="button-row"><button id="inject">${t("Импульс +2")}</button><button id="connect">${t("Связать ↗")}</button></div><div class="button-row"><button id="copy">${t("Копировать")}</button><button class="danger" id="delete">${t("Удалить")}</button></div></div>`;
       const related = this.api.project.topology.synapses.filter(
         (s) => this.selected.has(s.source) || this.selected.has(s.target),
       );
       content.insertAdjacentHTML(
         "beforeend",
-        `<div class="section"><h3>Связи · ${related.length}</h3><div class="list">${related
+        `<div class="section"><h3>${t("Связи ·")} ${related.length}</h3><div class="list">${related
           .slice(0, 200)
           .map(
             (s) =>
@@ -367,7 +392,7 @@ export class EditorView {
           )
           .join(
             "",
-          )}</div>${related.length > 200 ? '<p class="help">Показаны первые 200 связей выбранных нейронов.</p>' : ""}</div>`,
+          )}</div>${related.length > 200 ? `<p class="help">${t("Показаны первые 200 связей выбранных нейронов.")}</p>` : ""}</div>`,
       );
       content.querySelectorAll<HTMLElement>("[data-edge]").forEach(
         (b) =>
@@ -388,19 +413,19 @@ export class EditorView {
         handle(
           this.api
             .command("inject", { id: n.id, current: 2 }, false)
-            .then(() => toast("Импульс подан на следующий такт")),
+            .then(() => toast(t("Импульс подан на следующий такт"))),
         );
       content.querySelector<HTMLElement>("#connect")!.onclick = () => {
         this.setTool("connect");
         this.source = n.id;
-        toast("Выберите нейрон-получатель или коннектор");
+        toast(t("Выберите нейрон-получатель или коннектор"));
       };
       content.querySelector<HTMLElement>("#copy")!.onclick = () => this.copy();
       content.querySelector<HTMLElement>("#delete")!.onclick = () =>
         this.remove();
       return;
     }
-    content.innerHTML = `<div class="section"><h3>Инспектор</h3><p class="empty">Выберите нейрон, синапс или ганглий, чтобы увидеть параметры.</p><div class="button-row"><button id="new-neuron">＋ Нейрон</button><button id="new-ganglion">◉ Ганглий</button></div></div><div class="section"><h3>Три вида связей</h3><p class="help"><span style="color:#bad881">━━</span> Прямая: положительный вес возбуждает, отрицательный тормозит.</p><p class="help"><span style="color:#bba8ed">┄┄</span> Модуляция E: изменяет чувствительность к возбуждению.</p><p class="help"><span style="color:#82bfd0">┄┄</span> Модуляция I: изменяет чувствительность к торможению.</p></div><div class="section"><h3>Быстрые действия</h3><p class="help">⌘ / Ctrl + C, V — копировать и вставить<br>⌘ / Ctrl + Z — отменить изменение сети<br>Delete — удалить выбранное<br>Shift + щелчок — множественный выбор<br>Средняя кнопка — панорама<br>Колесо — масштаб под курсором</p><button class="wide" id="undo">Отменить изменение сети</button></div>`;
+    content.innerHTML = `<div class="section"><h3>${t("Инспектор")}</h3><p class="empty">${t("Выберите нейрон, синапс или ганглий, чтобы увидеть параметры.")}</p><div class="button-row"><button id="new-neuron">${t("＋ Нейрон")}</button><button id="new-ganglion">${t("◉ Ганглий")}</button></div></div><div class="section"><h3>${t("Три вида связей")}</h3><p class="help"><span style="color:#bad881">━━</span> ${t("Прямая: положительный вес возбуждает, отрицательный тормозит.")}</p><p class="help"><span style="color:#bba8ed">┄┄</span> ${t("Модуляция E: изменяет чувствительность к возбуждению.")}</p><p class="help"><span style="color:#82bfd0">┄┄</span> ${t("Модуляция I: изменяет чувствительность к торможению.")}</p></div><div class="section"><h3>${t("Быстрые действия")}</h3><p class="help">${t("⌘ / Ctrl + C, V — копировать и вставить")}<br>${t("⌘ / Ctrl + Z — отменить изменение сети")}<br>${t("Delete — удалить выбранное")}<br>${t("Shift + щелчок — множественный выбор")}<br>${t("Средняя кнопка — панорама")}<br>${t("Колесо — масштаб под курсором")}</p><button class="wide" id="undo">${t("Отменить изменение сети")}</button></div>`;
     content.querySelector<HTMLElement>("#new-neuron")!.onclick = () =>
       this.setTool("neuron");
     content.querySelector<HTMLElement>("#new-ganglion")!.onclick = () => {
@@ -413,7 +438,7 @@ export class EditorView {
     const p =
       center ??
       this.view.world({ x: this.view.width / 2, y: this.view.height / 2 });
-    content.innerHTML = `<form id="ganglion-form"><div class="section"><h3>Создать ганглий</h3><div class="fields">${input("label", "Название", "Ganglion", true)}${field("count", "Число нейронов", 40, 1, 1, 2000)}${field("radius", "Радиус области", Math.round(radius), 1, 30, 5000)}${field("x", "Центр X", Math.round(p.x))}${field("y", "Центр Y", Math.round(p.y))}${field("density", "Вероятность связи", 0.08, 0.01, 0, 1)}${field("max_distance", "Макс. расстояние · 0 = без лимита", 0, "any", 0, 300000)}${field("excitatory", "Доля возбуждающих", 0.8, 0.05, 0, 1)}${select("mode", "Как распределить знаки", "neurons", { neurons: "Возбуждающие / тормозящие нейроны", synapses: "Случайный знак каждой связи" }, true)}${field("weight", "Модуль веса", 0.5, 0.05, 0, 100)}${field("delay", "Задержка, такты", 2, 1, 1, 256)}${field("seed", "Seed генерации", 42, 1, 0, 2147483647)}</div><p class="help">Нейроны равномерно распределены по площади круга. Плотность — вероятность связи среди пар в пределах максимального расстояния; самосвязи исключены. 0 — без ограничения дальности.</p></div><div class="section"><h3>Параметры новых нейронов</h3><div class="fields">${field("threshold", "Порог", 1, 0.05, 0.001, 10000)}${field("leak", "Утечка / такт", 0.08, 0.01, 0, 1)}${field("refractory", "Рефрактерность", 2, 1, 0, 10000)}${field("bias", "Постоянный ток", 0, 0.01, -100, 100)}${select("reset_mode", "После спайка", "retain", { retain: "Сохранить потенциал", reset: "Сбросить в 0" }, true)}</div><button class="primary wide">Сгенерировать ганглий</button><p class="help">Коннектор справа от круга передаёт любой выбранный тип воздействия всем нейронам внутри.</p></div></form>`;
+    content.innerHTML = `<form id="ganglion-form"><div class="section"><h3>${t("Создать ганглий")}</h3><div class="fields">${input("label", t("Название"), "Ganglion", true)}${field("count", t("Число нейронов"), 40, 1, 1, 200000)}${field("radius", t("Радиус области"), Math.round(radius), 1, 30, 50000)}${field("x", t("Центр X"), Math.round(p.x))}${field("y", t("Центр Y"), Math.round(p.y))}${field("density", t("Вероятность связи"), 0.08, 0.01, 0, 1)}${field("max_distance", t("Макс. расстояние · 0 = без лимита"), 0, "any", 0, 300000)}${field("excitatory", t("Доля возбуждающих"), 0.8, 0.05, 0, 1)}${select("mode", t("Как распределить знаки"), "neurons", { neurons: t("Возбуждающие / тормозящие нейроны"), synapses: t("Случайный знак каждой связи") }, true)}${field("weight", t("Модуль веса"), 0.5, 0.05, 0, 100)}${field("delay", t("Задержка, такты"), 2, 1, 1, 256)}${field("seed", t("Seed генерации"), 42, 1, 0, 2147483647)}</div><p class="help">${t("Нейроны равномерно распределены по площади круга. Плотность — вероятность связи среди пар в пределах максимального расстояния; самосвязи исключены. 0 — без ограничения дальности. Лимит сети — 500 000 связей; для 200 000 нейронов без ограничения дальности используйте вероятность около 0,00001 или меньше.")}</p></div><div class="section"><h3>${t("Параметры новых нейронов")}</h3><div class="fields">${field("threshold", t("Порог"), 1, 0.05, 0.001, 10000)}${field("leak", t("Утечка / такт"), 0.08, 0.01, 0, 1)}${field("refractory", t("Рефрактерность"), 2, 1, 0, 10000)}${field("bias", t("Постоянный ток"), 0, 0.01, -100, 100)}${select("reset_mode", t("После спайка"), "retain", { retain: t("Сохранить потенциал"), reset: t("Сбросить в 0") }, true)}</div><button class="primary wide">${t("Сгенерировать ганглий")}</button><p class="help">${t("Коннектор справа от круга передаёт любой выбранный тип воздействия всем нейронам внутри.")}</p></div></form>`;
     onForm(content, "ganglion-form", (v) => {
       const { threshold, leak, refractory, bias, reset_mode, ...params } = v;
       const previous = structuredClone(this.api.project.topology);
@@ -431,14 +456,14 @@ export class EditorView {
             this.selectedGanglion =
               this.api.project.topology.ganglia.at(-1)?.id;
             this.renderSide();
-            toast("Ганглий создан");
+            toast(t("Ганглий создан"));
           }),
       );
     });
   }
   synapseForm(content: HTMLElement, s: Synapse, isNew = false) {
     if (isNew) this.draft = s;
-    content.innerHTML = `<form id="synapse-form" class="section"><h3>${isNew ? "Новая связь" : "Синапс"}</h3><div class="fields">${select("source", "От нейрона", s.source, Object.fromEntries([...this.nodes].map(([id, n]) => [id, `${n.label} · ${id}`])), true)}${select("target", "К нейрону / ганглию", s.target, { ...Object.fromEntries([...this.nodes].map(([id, n]) => [id, `${n.label} · ${id}`])), ...Object.fromEntries([...this.groups].map(([id, g]) => [id, `◉ ${g.label} · все ${g.members.length}`])) }, true)}${select("kind", "Действие", s.kind, { direct: "Прямое воздействие", mod_exc: "Модуляция возбуждения · E", mod_inh: "Модуляция торможения · I" }, true)}${field("weight", "Вес со знаком", s.weight, 0.05, -10000, 10000)}${field("delay", "Задержка, такты", s.delay, 1, 1, 256)}</div><p class="help">Для модулирующей связи + увеличивает чувствительность, − уменьшает. Мембранный потенциал напрямую не меняется.</p><button class="primary wide">${isNew ? "Создать связь" : "Сохранить связь"}</button>${!isNew ? '<button type="button" class="wide danger" id="delete-edge">Удалить связь</button>' : ""}</form>`;
+    content.innerHTML = `<form id="synapse-form" class="section"><h3>${isNew ? t("Новая связь") : t("Синапс")}</h3><div class="fields">${select("source", t("От нейрона"), s.source, Object.fromEntries([...this.nodes].map(([id, n]) => [id, `${n.label} · ${id}`])), true)}${select("target", t("К нейрону / ганглию"), s.target, { ...Object.fromEntries([...this.nodes].map(([id, n]) => [id, `${n.label} · ${id}`])), ...Object.fromEntries([...this.groups].map(([id, g]) => [id, t("◉ {0} · все {1}", g.label, g.members.length)])) }, true)}${select("kind", t("Действие"), s.kind, { direct: t("Прямое воздействие"), mod_exc: t("Модуляция возбуждения · E"), mod_inh: t("Модуляция торможения · I") }, true)}${field("weight", t("Вес со знаком"), s.weight, 0.05, -10000, 10000)}${field("delay", t("Задержка, такты"), s.delay, 1, 1, 256)}</div><p class="help">${t("Для модулирующей связи + увеличивает чувствительность, − уменьшает. Мембранный потенциал напрямую не меняется.")}</p><button class="primary wide">${isNew ? t("Создать связь") : t("Сохранить связь")}</button>${!isNew ? `<button type="button" class="wide danger" id="delete-edge">${t("Удалить связь")}</button>` : ""}</form>`;
     if (isNew)
       content
         .querySelector<HTMLFormElement>("#synapse-form")!
@@ -496,15 +521,15 @@ export class EditorView {
   }
   projectionForm(content: HTMLElement) {
     const options = {
-      "": "Выберите ганглий",
+      "": t("Выберите ганглий"),
       ...Object.fromEntries(
         [...this.groups.values()].map((g) => [
           g.id,
-          `${g.label} · ${g.members.length} нейронов`,
+          t("{0} · {1} нейронов", g.label, g.members.length),
         ]),
       ),
     };
-    content.innerHTML = `<form id="projection-form" class="section"><h3>Связи между ганглиями</h3><div class="fields">${select("source", "Источник", this.projectionSource ?? "", options, true)}${select("target", "Получатель", this.projectionTarget ?? "", options, true)}${select("kind", "Тип связей", "direct", { direct: "Прямые · знак по полярности", mod_exc: "Модуляция возбуждения · E", mod_inh: "Модуляция торможения · I" }, true)}${field("density", "Вероятность связи", 0.1, "any", 0, 1)}${field("weight", "Вес", 0.5, "any", -10000, 10000)}${field("delay", "Задержка, такты", 1, 1, 1, 256)}${field("seed", "Seed", 42, 1, 0, 2147483647)}${field("max_distance", "Макс. расстояние · 0 = без лимита", 0, "any", 0, 300000)}</div><p class="help">Связи направлены от нейронов первого ганглия к нейронам второго. Для прямых связей знак определяется полярностью источника, для mixed — знаком веса. Модуляция использует указанный знак. Существующие пары того же типа пропускаются.</p><button class="primary wide" ${this.groups.size < 2 ? "disabled" : ""}>Сгенерировать связи</button><p class="help">Выберите два круга на поле или укажите их здесь. ${this.groups.size < 2 ? "Сначала создайте минимум два ганглия." : ""}</p></form>`;
+    content.innerHTML = `<form id="projection-form" class="section"><h3>${t("Связи между ганглиями")}</h3><div class="fields">${select("source", t("Источник"), this.projectionSource ?? "", options, true)}${select("source_polarity", t("Нейроны-источники"), "any", { any: t("Любые"), exc: t("Только возбуждающие"), inh: t("Только тормозящие") }, true)}${select("target", t("Получатель"), this.projectionTarget ?? "", options, true)}${select("target_polarity", t("Целевые нейроны"), "any", { any: t("Любые"), exc: t("Только возбуждающие"), inh: t("Только тормозящие") }, true)}${select("kind", t("Тип связей"), "direct", { direct: t("Прямые · знак по полярности"), mod_exc: t("Модуляция возбуждения · E"), mod_inh: t("Модуляция торможения · I") }, true)}${field("density", t("Вероятность связи"), 0.1, "any", 0, 1)}${field("weight", t("Вес"), 0.5, "any", -10000, 10000)}${field("delay", t("Задержка, такты"), 1, 1, 1, 256)}${field("seed", "Seed", 42, 1, 0, 2147483647)}${field("max_distance", t("Макс. расстояние · 0 = без лимита"), 0, "any", 0, 300000)}</div><p class="help">${t("Связи направлены от выбранного типа нейронов первого ганглия к выбранному типу нейронов второго. Фильтры источников и получателей независимы. Нейроны со смешанной полярностью входят только в «Любые». Для прямых связей знак определяется полярностью источника, для mixed — знаком веса. Модуляция использует указанный знак. Существующие пары того же типа пропускаются.")}</p><button class="primary wide" ${this.groups.size < 2 ? "disabled" : ""}>${t("Сгенерировать связи")}</button><p class="help">${t("Выберите два круга на поле или укажите их здесь.")} ${this.groups.size < 2 ? t("Сначала создайте минимум два ганглия.") : ""}</p></form>`;
     for (const key of ["source", "target"])
       content.querySelector<HTMLSelectElement>(`[name="${key}"]`)!.onchange = (
         e,
@@ -523,7 +548,7 @@ export class EditorView {
               this.undo.push(previous);
               if (this.undo.length > 20) this.undo.shift();
             }
-            toast(`Создано связей: ${result.added_synapses}`);
+            toast(t("Создано связей: {0}", result.added_synapses));
           }),
       );
     });
@@ -584,7 +609,7 @@ export class EditorView {
           this.projectionSource = g.id;
           this.projectionTarget = undefined;
         } else if (g.id !== this.projectionSource) this.projectionTarget = g.id;
-        else toast("Выберите другой ганглий");
+        else toast(t("Выберите другой ганглий"));
         this.renderSide();
       }
       return;
@@ -607,7 +632,7 @@ export class EditorView {
       if (!this.source) {
         if (hit) {
           this.source = hit.id;
-          toast(`Источник: ${hit.label}. Выберите получателя.`);
+          toast(t("Источник: {0}. Выберите получателя.", hit.label));
         }
         return;
       }
@@ -822,7 +847,7 @@ export class EditorView {
       live.textContent =
         i >= 0
           ? `V ${s.activity.v[i].toFixed(3)} · E ${s.activity.exc[i].toFixed(2)} · I ${s.activity.inh[i].toFixed(2)}`
-          : "Нейрон вне выборки телеметрии";
+          : t("Нейрон вне выборки телеметрии");
     }
   }
   private drawPreview(a: Point, b: Point) {
@@ -966,6 +991,11 @@ export class EditorView {
       const selected = this.selected.has(n.id);
       const active = now - (this.flashes.get(n.id) ?? -1000) < 140;
       const color = this.color(n);
+      if (v.zoom < 0.05 && !selected && !active && n.kind === "inter") {
+        c.fillStyle = color;
+        c.fillRect(n.x, n.y, 1 / v.zoom, 1 / v.zoom);
+        continue;
+      }
       if (selected) circle(c, n.x, n.y, 19, "#d9eba219", "#e4f0be");
       if (active) circle(c, n.x, n.y, 22, "#d8edaa28");
       circle(
@@ -1013,8 +1043,12 @@ export class EditorView {
         if (this.draft) circle(c, b.x, b.y, 19, "transparent", "#f1d18a");
       }
       document.getElementById("stage-hint")!.textContent = this.draft
-        ? `Намечена связь: ${this.draft.source} → ${this.draft.target} · нажмите «Создать связь»`
-        : "Выберите получателя связи";
+        ? t(
+            "Намечена связь: {0} → {1} · нажмите «Создать связь»",
+            this.draft.source,
+            this.draft.target,
+          )
+        : t("Выберите получателя связи");
       this.view.canvas.dataset.pendingTarget = this.draft?.target ?? "";
     } else this.view.canvas.dataset.pendingTarget = "";
     if (this.tool === "projection") {
@@ -1060,9 +1094,9 @@ export class EditorView {
     }
     document.getElementById("sampling")!.textContent =
       stride > 1
-        ? `Показана 1 из ${stride} связей`
+        ? t("Показана 1 из {0} связей", stride)
         : this.api.state?.activity.sampled
-          ? "Активность: первые 2 000 нейронов"
+          ? t("Активность: первые 2 000 нейронов")
           : "";
   }
 }

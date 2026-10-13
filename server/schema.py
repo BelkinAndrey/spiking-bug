@@ -8,7 +8,9 @@ import re
 from typing import Any
 
 DT = 0.01
-MAX_NEURONS = 20000
+MAX_NEURONS = 1_000_000
+MAX_GANGLION_NEURONS = 200_000
+MAX_GANGLION_RADIUS = 50_000
 MAX_SYNAPSES = 500000
 MAX_DELAY = 256
 KINDS = ("direct", "mod_exc", "mod_inh")
@@ -119,7 +121,7 @@ def topology(data):
     ns = data.get("neurons", [])
     ss = data.get("synapses", [])
     if not isinstance(ns, list) or len(ns) > MAX_NEURONS:
-        raise ValueError("Лимит: 20 000 нейронов")
+        raise ValueError("Лимит: 1 000 000 нейронов")
     if not isinstance(ss, list) or len(ss) > MAX_SYNAPSES:
         raise ValueError("Лимит: 500 000 связей")
     neurons = [
@@ -169,7 +171,7 @@ def topology(data):
                 members=members,
                 x=number(g["x"], "x", -100000, 100000),
                 y=number(g["y"], "y", -100000, 100000),
-                radius=number(g["radius"], "radius", 30, 5000),
+                radius=number(g["radius"], "radius", 30, MAX_GANGLION_RADIUS),
             )
         )
     synapses = []

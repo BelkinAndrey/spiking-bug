@@ -259,6 +259,18 @@ class Runtime:
                     item["y"] += dy
             elif action == "bindings":
                 self.bindings = schema.bindings(data, self.net.topology)
+            elif action == "new_document":
+                self._replace_net(schema.default_topology(), preserve=False)
+                self.bindings = schema.default_bindings()
+                self.name = "Новая нервная система"
+                self.running = False
+                self.manual = {}
+                self.manual_until = 0.0
+                self.inject.clear()
+                self.ticks = 0
+                self.error = None
+                self.last_step_ms = 0.0
+                self.overruns = 0
             elif action == "import":
                 p = schema.migrate_project(data)
                 world = World(p["world"])

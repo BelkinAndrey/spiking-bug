@@ -3,6 +3,8 @@ export interface Point {
   y: number;
 }
 export class Viewport {
+  static readonly minZoom = 0.0005;
+  static readonly maxZoom = 5;
   ctx: CanvasRenderingContext2D;
   width = 1;
   height = 1;
@@ -21,7 +23,10 @@ export class Viewport {
       if (saved && [saved.x, saved.y, saved.zoom].every(Number.isFinite)) {
         this.x = saved.x;
         this.y = saved.y;
-        this.zoom = Math.min(5, Math.max(0.05, saved.zoom));
+        this.zoom = Math.min(
+          Viewport.maxZoom,
+          Math.max(Viewport.minZoom, saved.zoom),
+        );
       }
     } catch {}
     new ResizeObserver(() => this.resize()).observe(canvas);
@@ -60,7 +65,10 @@ export class Viewport {
   }
   scale(factor: number, p = { x: this.width / 2, y: this.height / 2 }) {
     const before = this.world(p);
-    this.zoom = Math.min(5, Math.max(0.05, this.zoom * factor));
+    this.zoom = Math.min(
+      Viewport.maxZoom,
+      Math.max(Viewport.minZoom, this.zoom * factor),
+    );
     this.x = p.x - before.x * this.zoom;
     this.y = p.y - before.y * this.zoom;
     this.save();
@@ -69,7 +77,7 @@ export class Viewport {
     this.zoom = Math.min(
       1.5,
       Math.max(
-        0.05,
+        Viewport.minZoom,
         Math.min(
           (this.width - 100) / Math.max(1, w),
           (this.height - 100) / Math.max(1, h),
@@ -102,7 +110,10 @@ export class Viewport {
     const c = this.ctx;
     const left = this.world({ x: 0, y: 0 }),
       right = this.world({ x: this.width, y: this.height });
-    const step = spacing * (this.zoom < 0.3 ? 4 : this.zoom < 0.6 ? 2 : 1);
+    // Keep the number of grid dots bounded even when viewing the whole network.
+    const step =
+      spacing *
+      2 ** Math.max(0, Math.ceil(Math.log2(30 / (spacing * this.zoom))));
     c.fillStyle = "#263032";
     for (let x = Math.floor(left.x / step) * step; x < right.x; x += step)
       for (let y = Math.floor(left.y / step) * step; y < right.y; y += step) {

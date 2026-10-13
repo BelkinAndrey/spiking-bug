@@ -14,6 +14,66 @@ def world(**config):
 
 
 class WorldTests(unittest.TestCase):
+    def test_exhausted_movement_costs_one_percent_health_per_second(self):
+        for manual in (None, dict(right=True)):
+            with self.subTest(manual=manual):
+                w = world()
+                w.agent["fatigue"] = 1.0
+                for _ in range(100):
+                    w.step(dict(right=True), manual=manual)
+                self.assertAlmostEqual(w.agent["health"], 0.99)
+                self.assertAlmostEqual(w.agent["damage"], 0.01)
+
+    def test_fatigue_threshold_and_recovery(self):
+        w = world()
+        w.agent["fatigue"] = 0.9
+        w.step(dict(forward=True))
+        self.assertEqual(w.agent["health"], 1.0)
+        w.agent["fatigue"] = 0.99
+        w.step(dict(forward=True))
+        self.assertEqual(w.agent["fatigue"], 1.0)
+        self.assertLess(w.agent["health"], 1.0)
+        health = w.agent["health"]
+        for _ in range(100):
+            w.step({})
+        w.step(dict(forward=True))
+        self.assertLess(w.agent["fatigue"], 1.0)
+        self.assertEqual(w.agent["health"], health)
+
+    def test_exhaustion_requires_actual_movement(self):
+        for motors, manual in (
+            ({}, None),
+            (dict(left=True, right=True), None),
+            (dict(forward=True), {}),
+        ):
+            with self.subTest(motors=motors, manual=manual):
+                w = world()
+                w.agent["fatigue"] = 1.0
+                w.step(motors, manual=manual)
+                self.assertEqual(w.agent["health"], 1.0)
+        w = world()
+        w.agent.update(x=588, fatigue=1.0)
+        w.step(dict(forward=True))
+        self.assertEqual(w.agent["x"], 588)
+        self.assertEqual(w.agent["health"], 1.0)
+
+    def test_exhaustion_can_kill_and_stops_further_movement(self):
+        w = world()
+        w.agent.update(fatigue=1.0, health=0.00005)
+        w.step(dict(forward=True))
+        self.assertEqual(w.agent["health"], 0.0)
+        self.assertAlmostEqual(w.agent["damage"], 0.00005)
+        x = w.agent["x"]
+        w.step(dict(forward=True))
+        self.assertEqual(w.agent["x"], x)
+
+    def test_direct_paused_movement_does_not_apply_exhaustion_damage(self):
+        w = world()
+        w.agent["fatigue"] = 1.0
+        w.drive(dict(forward=True))
+        self.assertGreater(w.agent["x"], 300)
+        self.assertEqual(w.agent["health"], 1.0)
+
     def test_collision_no_tunnelling(self):
         w = world()
         w.add_object(dict(kind="obstacle", x=330, y=100, w=5, h=400))

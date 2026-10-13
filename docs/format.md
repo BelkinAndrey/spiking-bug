@@ -82,8 +82,9 @@ full-topology edits. Invalid inputs return HTTP 400, unexpected errors HTTP 500.
 | `positions` | `positions: [{id,x,y}]` | Geometry-only edits, preserves pending currents |
 | `move_ganglion` | `id,dx,dy` | Translate group and every explicit member, preserving neural runtime state |
 | `ganglion` | `id,label,x,y,radius,count,density,max_distance,excitatory,mode,weight,delay,seed,neuron` | Append seeded generated group; distance 0 means unlimited |
-| `connect_ganglia` | `id,source,target,kind,density,weight,delay,seed,max_distance` | Seeded directed member-to-member edges; returns `added_synapses`; distance 0 means unlimited |
+| `connect_ganglia` | `id,source,target,source_polarity,target_polarity,kind,density,weight,delay,seed,max_distance` | Seeded directed member-to-member edges; `source_polarity` and `target_polarity` independently accept `any` (default, includes mixed), `exc`, or `inh`; returns `added_synapses`; distance 0 means unlimited |
 | `bindings` | channel → neuron ID or empty string | Replace all bindings |
+| `new_document` | empty object | Replace the neural document with the default 17-neuron network and channel bindings; pause and reset neural activity; preserve the current arena and compute device |
 | `world_config` | subset of world config | Validate and update settings |
 | `place` | `kind,x,y` and `w,h` for obstacle | Add one world object |
 | `zone` | `x,y,w,h` | Add food spawn zone |

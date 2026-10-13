@@ -117,11 +117,18 @@ which accumulates repeated indices. There is no 8,192-pulse truncation from the
 old implementation. Each step scans the edge source array to find firing sources;
 this is O(E), not an outgoing-CSR event-only algorithm.
 
-Validated upper limits: 20,000 neurons; 500,000 effective edges **after** ganglion
-expansion; 2,000 neurons per generated ganglion; 2,500 world objects. The delay
+Validation limits: 1,000,000 neurons; 500,000 effective edges **after** ganglion
+expansion; 200,000 neurons per generated ganglion (radius up to 50,000); 2,500 world objects. The delay
 ring can use about 82 MB at 20k neurons and delay 256, excluding edge arrays,
 Python topology objects and JSON buffers. The UI memory metric is NumPy arrays
 only, not process RSS.
+
+The camera zooms out to 0.0005 (100 times farther than the former 0.05 limit).
+Fit includes ganglion boundaries and handles large neuron arrays without spreading
+them into function arguments. The background grid adapts to screen-space density.
+API import and structural-edit request bodies accept up to 512 MiB.
+For 200,000 neurons with unlimited connection distance, probability 0.00001
+produces about 400,000 edges on average; the 500,000 effective-edge cap still applies.
 
 CPU uses NumPy. The optional PyTorch backend runs LIF integration, modulation,
 refractory handling and delayed scatter-add on Metal/MPS or CUDA. State, parameters,
@@ -185,7 +192,11 @@ Food spawns one portion per interval toward the target; if zones exist, choose
 a zone uniformly and a free point inside it. Spawn attempts are bounded; a full
 arena can contain fewer objects than requested. Contact food restores health and
 clears hunger. Hunger and fatigue are neural observations; fatigue does not
-implicitly scale speed. At health zero the bug stops until reset.
+implicitly scale speed. Movement or turning at full fatigue costs 0.01 health per
+simulated second and contributes to cumulative damage. A tick is exhausted if
+fatigue is full at its start or after motor activity and recovery. Idle ticks and
+fully blocked motion do not incur this damage; paused manual jogging does not
+advance physiology. At health zero the bug stops until reset.
 
 ## Telemetry and visualization contract
 

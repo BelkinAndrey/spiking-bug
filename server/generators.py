@@ -2,13 +2,24 @@
 
 import math
 import random
-from .schema import number, identifier, neuron, topology, MAX_SYNAPSES
+from .schema import (
+    number,
+    identifier,
+    neuron,
+    topology,
+    MAX_SYNAPSES,
+    MAX_NEURONS,
+    MAX_GANGLION_NEURONS,
+    MAX_GANGLION_RADIUS,
+)
 
 
 def ganglion(net, params):
     gid = identifier(params.get("id", "g1"))
-    count = number(params.get("count", 40), "count", 1, 2000, True)
-    radius = number(params.get("radius", 180), "radius", 30, 5000)
+    count = number(params.get("count", 40), "count", 1, MAX_GANGLION_NEURONS, True)
+    if len(net["neurons"]) + count > MAX_NEURONS:
+        raise ValueError("Лимит: 1 000 000 нейронов")
+    radius = number(params.get("radius", 180), "radius", 30, MAX_GANGLION_RADIUS)
     density = number(params.get("density", 0.08), "density", 0, 1)
     max_distance = number(params.get("max_distance", 0), "max_distance", 0, 300000)
     fraction = number(params.get("excitatory", 0.8), "excitatory", 0, 1)
@@ -155,14 +166,26 @@ def connect_ganglia(net, params):
     kind = params.get("kind", "direct")
     if kind not in ("direct", "mod_exc", "mod_inh"):
         raise ValueError("Неизвестный тип связи")
+    source_polarity = params.get("source_polarity", "any")
+    if source_polarity not in ("any", "exc", "inh"):
+        raise ValueError("Неизвестный тип нейронов-источников")
+    target_polarity = params.get("target_polarity", "any")
+    if target_polarity not in ("any", "exc", "inh"):
+        raise ValueError("Неизвестный тип целевых нейронов")
     prefix = identifier(params.get("id", f"projection_{seed}"))
     rng = random.Random(seed)
     nodes = {n["id"]: n for n in net["neurons"]}
     pairs = {(s["source"], s["target"], s["kind"]) for s in net["synapses"]}
     used_ids = {s["id"] for s in net["synapses"]}
     additions = []
-    destinations = groups[target]["members"]
+    destinations = [
+        nid
+        for nid in groups[target]["members"]
+        if target_polarity == "any" or nodes[nid]["polarity"] == target_polarity
+    ]
     for i, src in enumerate(groups[source]["members"]):
+        if source_polarity != "any" and nodes[src]["polarity"] != source_polarity:
+            continue
         j = -1
         while density > 0:
             j += 1 if density == 1 else 1 + int(math.log1p(-rng.random()) / math.log1p(-density))

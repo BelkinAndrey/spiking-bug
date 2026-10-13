@@ -9,10 +9,13 @@ import time
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import HTTPException
 from .runtime import Runtime, Conflict
+from .trials import Trials
 
 
 def create_app(runtime):
     app = Flask(__name__)
+    trials = Trials()
+    app.extensions["trials"] = trials
     # Large generated topologies must also support import and structural edits.
     app.config["MAX_CONTENT_LENGTH"] = 512 * 1024 * 1024
 
@@ -28,6 +31,24 @@ def create_app(runtime):
     @app.get("/api/state")
     def state():
         return jsonify(runtime.snapshot())
+
+    @app.get("/api/trials")
+    def trial_status():
+        return jsonify(trials.snapshot())
+
+    @app.post("/api/trials")
+    def start_trials():
+        data = request.get_json()
+        if not isinstance(data, dict):
+            raise ValueError("Ожидается JSON-объект")
+        return jsonify(trials.start(runtime, data.get("settings", {}), data.get("revision")))
+
+    @app.post("/api/trials/cancel")
+    def cancel_trials():
+        data = request.get_json()
+        if not isinstance(data, dict):
+            raise ValueError("Ожидается JSON-объект")
+        return jsonify(trials.cancel(data.get("id")))
 
     @app.get("/api/devices")
     def compute_devices():
@@ -88,10 +109,12 @@ def main():
     args = parser.parse_args()
     runtime = Runtime(None if args.ephemeral else args.project)
     threading.Thread(target=runtime.loop, daemon=True).start()
+    app = create_app(runtime)
     try:
-        create_app(runtime).run(host="127.0.0.1", port=args.port, threaded=True, use_reloader=False)
+        app.run(host="127.0.0.1", port=args.port, threaded=True, use_reloader=False)
     finally:
         runtime.stop_event.set()
+        app.extensions["trials"].close()
 
 
 if __name__ == "__main__":

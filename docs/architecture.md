@@ -182,7 +182,7 @@ visibility. Five lidar rays span −50…50°. Food sectors span −120…+2° a
 are inverse-square and capped to 1; configurable range truncates detection.
 
 Pursuit threats see omnidirectionally within a radius, require line of sight,
-and lose interest after a maximum chase duration, lost visibility or bug death.
+and lose interest after a maximum chase duration or lost visibility.
 They then rest for a cooldown before reacquiring. Obstacles block their motion.
 They do not perform global path planning. Static threats never move. Threats expire
 by lifetime and are replenished toward the target. Manual additions survive until
@@ -196,7 +196,10 @@ implicitly scale speed. Movement or turning at full fatigue costs 0.01 health pe
 simulated second and contributes to cumulative damage. A tick is exhausted if
 fatigue is full at its start or after motor activity and recovery. Idle ticks and
 fully blocked motion do not incur this damage; paused manual jogging does not
-advance physiology. At health zero the bug stops until reset.
+advance physiology. Zero health is informational: neural and manual movement
+continue with normal collision handling. Physiology, eating and pursuit remain
+active; food can restore health from zero. The environment overlays a localized
+"No health / Movement continues" indicator while health is zero.
 
 ## Telemetry and visualization contract
 
@@ -237,3 +240,33 @@ A failed disk write is reported to the client; simulation state is in memory and
 should be exported before closing. Keep JSON exports for named experiments.
 Automatic saving is not a history/versioning system. The editor maintains up to
 20 local topology undo snapshots; other-window edits are still revision-checked.
+
+
+## Isolated trials
+
+`server/trials.py` captures `Runtime.project()` under its revision lock, then
+runs a spawned child process with the selected compute backend. Each attempt
+constructs fresh `World` and network instances from that snapshot; no potentials,
+queues, physiology, manual input or live clock are carried into the attempts.
+Current object positions are reused by default; optional randomization retains
+obstacles and food zones and places food/threats using the configured targets.
+The seed is `(base_seed + attempt_index) % 2**31`.
+
+The unpaced loop preserves the same sensor → network → motor → world ordering
+and 10 ms model step as interactive execution, without rendering/history/SSE.
+Attempts end at zero health or the duration cap, unlike nonterminal health in
+normal mode. Only fully finished attempts enter summary statistics (population
+standard deviation). Damage is the world's threat/exhaustion counter and excludes
+starvation; blocked movement is measured among translational motor commands.
+Progress and speedup include elapsed work in an interrupted attempt, but its
+partial metrics do not enter the summary.
+
+`POST /api/trials` accepts `{revision, settings: {attempts, duration, seed,
+randomize}}`; stale revisions and a second simultaneous job return 409.
+`GET /api/trials` returns the last job or null. `POST /api/trials/cancel` accepts
+its `id`, preventing a stale window from cancelling a newer job. Cancellation
+is checked every 32 ticks, with bounded progress updates. A collector thread
+receives child messages and detects unexpected exits. Normal server shutdown
+cancels/terminates the worker. Results are kept in memory until the next job or
+server restart; the modal in `packages/ui/trials.ts` polls only while open and
+supports JSON/CSV export. Closing it leaves the worker running.

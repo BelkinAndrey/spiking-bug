@@ -1,5 +1,50 @@
 // Russian source messages are stable keys; project data is never translated.
 export const messages = {
+  Испытание: "Trial",
+  "Испытание нейронной сети": "Neural network trial",
+  Закрыть: "Close",
+  "Копия текущей сети и среды. Каждая попытка начинается с точки старта, полного здоровья и сброшенной активности сети. Завершение — при нулевом здоровье или по времени.":
+    "A copy of the current network and world. Each attempt starts at the spawn point with full health and reset neural activity. It ends at zero health or the time limit.",
+  "Количество попыток": "Number of attempts",
+  "Длительность попытки, с": "Attempt duration, s",
+  "Начальный seed": "Starting seed",
+  "Заново размещать пищу и угрозы в каждой попытке":
+    "Place food and threats anew in each attempt",
+  "Стены, зоны пищи и настройки среды сохраняются. Без перемешивания сохраняется текущая расстановка объектов. Seed увеличивается на 1; при отсутствии случайности попытки могут совпадать.":
+    "Walls, food zones and world settings are preserved. Without reshuffling, the current object layout is reused. The seed increases by 1; attempts may be identical without randomness.",
+  "Запустить испытание": "Start trial",
+  "Расчёт без отрисовки и ограничения темпа, с шагом 10 мс. Открытый эксперимент продолжает работать независимо.":
+    "Runs without rendering or pacing, at a 10 ms timestep. The open experiment continues independently.",
+  "Прогресс испытания": "Trial progress",
+  "Остановить испытание": "Stop trial",
+  "Результаты завершённых попыток": "Results of completed attempts",
+  "Выживаемость — доля попыток без обнуления здоровья. Метрики: среднее ± стандартное отклонение. Урон учитывает угрозы и усталость; блокировка — долю команд перемещения без сдвига.":
+    "Survival is the fraction of attempts that never reached zero health. Metrics show mean ± standard deviation. Damage includes threats and exhaustion; blocking is the fraction of movement commands with no displacement.",
+  Исход: "Outcome",
+  "Время, с": "Time, s",
+  "Здоровье, %": "Health, %",
+  "Путь, ед.": "Distance, units",
+  "Окно можно закрыть: испытание продолжится. Последний результат доступен до следующего запуска или перезапуска сервера.":
+    "You can close this window while the trial continues. The last result remains available until the next trial or server restart.",
+  "Для режима испытаний перезапустите сервер приложения.":
+    "Restart the application server to enable trials.",
+  "Испытание выполняется": "Trial running",
+  "Остановка…": "Stopping…",
+  "Испытание завершено": "Trial completed",
+  "Испытание остановлено": "Trial stopped",
+  "Ошибка испытания": "Trial failed",
+  "Прошло: {0} с · Время модели: {1} с · Ускорение: {2}×":
+    "Elapsed: {0} s · Model time: {1} s · Speedup: {2}×",
+  "Снимок: {0} · Ревизия {1} · {2}": "Snapshot: {0} · Revision {1} · {2}",
+  "Пища за попытку": "Food per attempt",
+  "Пища / мин": "Food / min",
+  "Урон, п.п.": "Damage, percentage points",
+  "Блокировка, %": "Blocked movement, %",
+  "Активность, Гц / нейрон": "Activity, Hz / neuron",
+  Выживаемость: "Survival",
+  "Лимит времени": "Time limit",
+  "Нет здоровья": "No health",
+  "Движение продолжается": "Movement continues",
   "Интеллект в среде": "Embodied intelligence",
   "Импульсная нейронная архитектура": "Spiking neural architecture",
   "Лаборатория 01": "Lab 01",
@@ -154,6 +199,17 @@ export const messages = {
   "Показаны первые 200 совпадений. Выбор нейрона открывает параметры и центрирует поле.":
     "Showing the first 200 matches. Selecting a neuron opens its parameters and centers the canvas.",
   "Визуальная рамка": "Visual frame",
+  Палитра: "Palette",
+  Серый: "Gray",
+  Голубой: "Light blue",
+  Синий: "Blue",
+  Фиолетовый: "Purple",
+  Розовый: "Pink",
+  Коралловый: "Coral",
+  Золотой: "Gold",
+  Зелёный: "Green",
+  "Тяните заголовок или границу, чтобы переместить рамку вместе с нейронами внутри. Ручки по краям меняют только размер рамки.":
+    "Drag the title or border to move the frame and the neurons inside. Edge handles resize only the frame.",
   Название: "Name",
   Цвет: "Color",
   Ширина: "Width",

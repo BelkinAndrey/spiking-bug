@@ -11,6 +11,29 @@ import {
   type Topology,
 } from "./types";
 
+type Frame = Topology["groups"][number];
+type FrameHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
+const frameHandles: [FrameHandle, number, number][] = [
+  ["nw", 0, 0],
+  ["n", 0.5, 0],
+  ["ne", 1, 0],
+  ["e", 1, 0.5],
+  ["se", 1, 1],
+  ["s", 0.5, 1],
+  ["sw", 0, 1],
+  ["w", 0, 0.5],
+];
+const frameCursors: Record<FrameHandle, string> = {
+  nw: "nwse-resize",
+  n: "ns-resize",
+  ne: "nesw-resize",
+  e: "ew-resize",
+  se: "nwse-resize",
+  s: "ns-resize",
+  sw: "nesw-resize",
+  w: "ew-resize",
+};
+
 export class EditorView {
   tool = "select";
   tab = "inspect";
@@ -21,6 +44,7 @@ export class EditorView {
   source?: string;
   private draft?: Synapse;
   private cursor?: Point;
+  private frameColor?: { id: string; color: string };
   private projectionSource?: string;
   private projectionTarget?: string;
   nodes = new Map<string, Neuron>();
@@ -32,6 +56,8 @@ export class EditorView {
     positions: Map<string, Point>;
     moved: boolean;
     group?: { id: string; x: number; y: number };
+    frame?: { original: Frame; handle?: FrameHandle; revision: number };
+    ganglia?: Map<string, Point>;
   };
   private clipboard?: { neurons: Neuron[]; synapses: Synapse[] };
   private undo: Topology[] = [];
@@ -47,7 +73,9 @@ export class EditorView {
     view.canvas.addEventListener("pointermove", (e) => this.move(e));
     view.canvas.addEventListener("pointerup", () => this.up());
     view.canvas.addEventListener("pointercancel", () => {
+      this.cancelFrameDrag();
       this.drag = undefined;
+      this.view.canvas.style.cursor = "default";
       handle(api.refresh());
     });
     document.addEventListener("keydown", (e) => {
@@ -70,6 +98,7 @@ export class EditorView {
         e.preventDefault();
       }
       if (e.key === "Escape") {
+        this.cancelFrameDrag();
         this.source = undefined;
         this.selected.clear();
         this.selectedEdge = undefined;
@@ -95,6 +124,13 @@ export class EditorView {
     this.fit();
   }
   rebuild() {
+    if (
+      this.drag?.frame &&
+      this.drag.frame.revision !== this.api.project.revision
+    ) {
+      this.drag = undefined;
+      this.view.canvas.style.cursor = "default";
+    }
     this.nodes = new Map(
       this.api.project.topology.neurons.map((n) => [n.id, n]),
     );
@@ -168,8 +204,10 @@ export class EditorView {
     if (tool === "projection") this.tab = "inspect";
     if (this.api.project) this.renderSide();
   }
-  async commit(topology: Topology) {
-    const previous = structuredClone(this.api.project.topology);
+  async commit(
+    topology: Topology,
+    previous = structuredClone(this.api.project.topology),
+  ) {
     await this.api.command("topology", topology);
     this.undo.push(previous);
     if (this.undo.length > 20) this.undo.shift();
@@ -258,6 +296,8 @@ export class EditorView {
     handle(this.commit(net));
   }
   renderSide() {
+    this.view.canvas.dataset.revision = String(this.api.project.revision);
+    this.frameColor = undefined;
     this.rebuild();
     this.side.innerHTML = `<div class="side-tabs">${[
       ["inspect", t("Инспектор")],
@@ -333,8 +373,49 @@ export class EditorView {
       (f) => f.id === this.selectedFrame,
     );
     if (frame) {
-      content.innerHTML = `<form id="frame-form" class="section"><h3>${t("Визуальная рамка")}</h3><div class="fields">${input("label", t("Название"), frame.label, true)}${input("color", t("Цвет"), frame.color, true)}${field("x", "X", frame.x)}${field("y", "Y", frame.y)}${field("w", t("Ширина"), frame.w, "any", 1, 100000)}${field("h", t("Высота"), frame.h, "any", 1, 100000)}<label class="full">${t("Комментарий")}<textarea name="comment">${escape(frame.comment)}</textarea></label></div><button class="primary wide">${t("Сохранить рамку")}</button><button type="button" class="wide danger" id="delete-frame">${t("Удалить только рамку")}</button><p class="help">${t("Рамка — визуальная аннотация. Она не меняет связи и не создаёт коннектор.")}</p></form>`;
+      const palette = [
+        ["#657586", t("Серый")],
+        ["#84bcca", t("Голубой")],
+        ["#82a8ed", t("Синий")],
+        ["#bba8ed", t("Фиолетовый")],
+        ["#dc94b5", t("Розовый")],
+        ["#e69586", t("Коралловый")],
+        ["#e3ba7e", t("Золотой")],
+        ["#bad881", t("Зелёный")],
+      ];
+      // Canvas accepts legacy CSS colors; normalize them for the native color input.
+      const probe = document.createElement("canvas").getContext("2d")!;
+      probe.fillStyle = "#657586";
+      probe.fillStyle = frame.color;
+      const pickerColor = /^#[0-9a-f]{6}$/i.test(probe.fillStyle)
+        ? probe.fillStyle
+        : "#657586";
+      content.innerHTML = `<form id="frame-form" class="section"><h3>${t("Визуальная рамка")}</h3><div class="fields">${input("label", t("Название"), frame.label, true)}<div class="full frame-colors"><label>${t("Цвет")}<input name="color" type="color" value="${escape(pickerColor)}"></label><div class="frame-palette" role="group" aria-label="${t("Палитра")}">${palette.map(([color, label]) => `<button type="button" class="frame-swatch" data-color="${color}" style="--swatch:${color}" aria-label="${label}" title="${label}" aria-pressed="${color === pickerColor}"></button>`).join("")}</div></div><label class="full">${t("Комментарий")}<textarea name="comment">${escape(frame.comment)}</textarea></label></div><button class="primary wide">${t("Сохранить рамку")}</button><button type="button" class="wide danger" id="delete-frame">${t("Удалить только рамку")}</button><p class="help">${t("Тяните заголовок или границу, чтобы переместить рамку вместе с нейронами внутри. Ручки по краям меняют только размер рамки.")}</p></form>`;
+      const colorInput = content.querySelector<HTMLInputElement>(
+        'input[name="color"]',
+      )!;
+      const updateColor = () => {
+        this.frameColor = { id: frame.id, color: colorInput.value };
+        content
+          .querySelectorAll<HTMLButtonElement>("[data-color]")
+          .forEach((button) => {
+            button.setAttribute(
+              "aria-pressed",
+              String(button.dataset.color === colorInput.value),
+            );
+          });
+      };
+      colorInput.oninput = updateColor;
+      content
+        .querySelectorAll<HTMLButtonElement>("[data-color]")
+        .forEach((button) => {
+          button.onclick = () => {
+            colorInput.value = button.dataset.color!;
+            updateColor();
+          };
+        });
       onForm(content, "frame-form", (v) => {
+        if (!this.frameColor) v.color = frame.color;
         const net = structuredClone(this.api.project.topology);
         net.groups = net.groups.map((f) =>
           f.id === frame.id ? { ...f, ...v } : f,
@@ -587,6 +668,81 @@ export class EditorView {
     const g = this.groups.get(id);
     return g ? { x: g.x + g.radius + 28, y: g.y } : this.nodes.get(id);
   }
+  cancelFrameDrag() {
+    const d = this.drag;
+    if (!d?.frame) return;
+    if (d.frame.revision === this.api.project.revision) {
+      const frame = this.api.project.topology.groups.find(
+        (f) => f.id === d.frame!.original.id,
+      );
+      if (frame) Object.assign(frame, d.frame.original);
+      for (const [id, p] of d.positions) Object.assign(this.nodes.get(id)!, p);
+      for (const [id, p] of d.ganglia ?? [])
+        Object.assign(this.groups.get(id)!, p);
+    }
+    this.drag = undefined;
+    this.view.canvas.style.cursor = "default";
+  }
+  frameHandleAt(p: Point) {
+    const frame = this.api.project.topology.groups.find(
+      (f) => f.id === this.selectedFrame,
+    );
+    if (!frame) return;
+    const handle = frameHandles.find(
+      ([, x, y]) =>
+        Math.abs(p.x - frame.x - x * frame.w) <= 8 / this.view.zoom &&
+        Math.abs(p.y - frame.y - y * frame.h) <= 8 / this.view.zoom,
+    );
+    if (handle) return { frame, handle: handle[0] };
+  }
+  frameAt(p: Point) {
+    const margin = 6 / this.view.zoom;
+    return [...this.api.project.topology.groups]
+      .reverse()
+      .find(
+        (f) =>
+          p.x >= f.x - margin &&
+          p.x <= f.x + f.w + margin &&
+          p.y >= f.y - margin &&
+          p.y <= f.y + f.h + margin &&
+          (p.y <= f.y + Math.min(f.h, 28 / this.view.zoom) ||
+            p.y >= f.y + f.h - margin ||
+            p.x <= f.x + margin ||
+            p.x >= f.x + f.w - margin),
+      );
+  }
+  beginFrameDrag(frame: Frame, handle?: FrameHandle) {
+    const d = this.drag!;
+    this.selected.clear();
+    this.selectedEdge = undefined;
+    this.selectedGanglion = undefined;
+    this.selectedFrame = frame.id;
+    d.frame = {
+      original: { ...frame },
+      handle,
+      revision: this.api.project.revision,
+    };
+    if (!handle) {
+      for (const n of this.nodes.values()) {
+        if (
+          n.x >= frame.x &&
+          n.x <= frame.x + frame.w &&
+          n.y >= frame.y &&
+          n.y <= frame.y + frame.h
+        )
+          d.positions.set(n.id, { x: n.x, y: n.y });
+      }
+      // Keep a ganglion's circle and connector aligned when every member moves.
+      d.ganglia = new Map();
+      for (const g of this.groups.values()) {
+        if (g.members.length && g.members.every((id) => d.positions.has(id)))
+          d.ganglia.set(g.id, { x: g.x, y: g.y });
+      }
+    }
+    this.view.canvas.style.cursor = handle ? frameCursors[handle] : "grabbing";
+    this.tab = "inspect";
+    this.renderSide();
+  }
   down(e: PointerEvent) {
     if (e.button !== 0 && e.button !== 1) return;
     this.view.canvas.setPointerCapture(e.pointerId);
@@ -661,6 +817,12 @@ export class EditorView {
       return;
     }
     if (this.tool === "select") {
+      const resize = this.frameHandleAt(p);
+      const frame = resize?.frame ?? this.frameAt(p);
+      if (frame) {
+        this.beginFrameDrag(frame, resize?.handle);
+        return;
+      }
       this.selectedEdge = undefined;
       this.selectedGanglion = undefined;
       this.selectedFrame = undefined;
@@ -686,21 +848,7 @@ export class EditorView {
           );
           if (g) this.selectedGanglion = g.id;
           else {
-            const f = [...this.api.project.topology.groups]
-              .reverse()
-              .find(
-                (f) =>
-                  p.x >= f.x &&
-                  p.x <= f.x + f.w &&
-                  p.y >= f.y &&
-                  p.y <= f.y + f.h &&
-                  (p.y - f.y < 28 / this.view.zoom ||
-                    f.y + f.h - p.y < 10 / this.view.zoom ||
-                    p.x - f.x < 10 / this.view.zoom ||
-                    f.x + f.w - p.x < 10 / this.view.zoom),
-              );
-            if (f) this.selectedFrame = f.id;
-            else this.drag.pan = true;
+            this.drag.pan = true;
           }
         }
       }
@@ -718,8 +866,25 @@ export class EditorView {
   }
   move(e: PointerEvent) {
     this.cursor = this.view.point(e);
-    if (!this.drag) return;
+    if (!this.drag) {
+      if (this.tool === "select") {
+        const resize = this.frameHandleAt(this.cursor);
+        this.view.canvas.style.cursor = resize
+          ? frameCursors[resize.handle]
+          : this.frameAt(this.cursor)
+            ? "grab"
+            : "default";
+      }
+      return;
+    }
     const d = this.drag;
+    if (
+      !d.moved &&
+      Math.hypot(this.cursor.x - d.start.x, this.cursor.y - d.start.y) *
+        this.view.zoom <
+        3
+    )
+      return;
     d.moved = true;
     if (d.pan) {
       this.view.x += e.movementX;
@@ -727,6 +892,39 @@ export class EditorView {
       return;
     }
     d.last = this.view.point(e);
+    if (d.frame) {
+      const f = this.api.project.topology.groups.find(
+        (f) => f.id === d.frame!.original.id,
+      )!;
+      const original = d.frame.original;
+      const dx = d.last.x - d.start.x,
+        dy = d.last.y - d.start.y;
+      const h = d.frame.handle;
+      if (h) {
+        // Anchor the opposite side and clamp rather than invert the rectangle.
+        const min = 10;
+        if (h.includes("w")) {
+          f.w = Math.max(min, Math.min(100000, original.w - dx));
+          f.x = original.x + original.w - f.w;
+        }
+        if (h.includes("e"))
+          f.w = Math.max(min, Math.min(100000, original.w + dx));
+        if (h.includes("n")) {
+          f.h = Math.max(min, Math.min(100000, original.h - dy));
+          f.y = original.y + original.h - f.h;
+        }
+        if (h.includes("s"))
+          f.h = Math.max(min, Math.min(100000, original.h + dy));
+      } else {
+        f.x = original.x + dx;
+        f.y = original.y + dy;
+        for (const [id, p] of d.ganglia!) {
+          const g = this.groups.get(id)!;
+          g.x = p.x + dx;
+          g.y = p.y + dy;
+        }
+      }
+    }
     if (d.group) {
       const g = this.groups.get(d.group.id)!;
       g.x = d.group.x + d.last.x - d.start.x;
@@ -742,6 +940,30 @@ export class EditorView {
     const d = this.drag;
     this.drag = undefined;
     if (!d) return;
+    if (d.frame) {
+      this.view.canvas.style.cursor = "grab";
+      if (!d.moved) return;
+      const net = structuredClone(this.api.project.topology);
+      const previous = structuredClone(net);
+      previous.groups = previous.groups.map((f) =>
+        f.id === d.frame!.original.id ? d.frame!.original : f,
+      );
+      for (const n of previous.neurons) {
+        const p = d.positions.get(n.id);
+        if (p) Object.assign(n, p);
+      }
+      for (const g of previous.ganglia) {
+        const p = d.ganglia?.get(g.id);
+        if (p) Object.assign(g, p);
+      }
+      handle(
+        this.commit(net, previous).catch(async (error) => {
+          await this.api.refresh();
+          throw error;
+        }),
+      );
+      return;
+    }
     if (d.pan) {
       this.view.save();
       return;
@@ -791,6 +1013,7 @@ export class EditorView {
       this.selectedEdge = undefined;
       this.selectedGanglion = undefined;
       this.tab = "inspect";
+      this.setTool("select");
       handle(this.commit(net));
     }
     if (d.group && d.moved) {
@@ -891,11 +1114,15 @@ export class EditorView {
     v.grid();
     const now = performance.now();
     for (const f of net.groups) {
-      c.fillStyle = "#69827b08";
+      const color =
+        this.frameColor?.id === f.id ? this.frameColor.color : f.color;
+      c.fillStyle = color;
+      c.globalAlpha = 0.06;
       c.fillRect(f.x, f.y, f.w, f.h);
-      c.strokeStyle = this.selectedFrame === f.id ? "#d6ed91" : f.color;
+      c.globalAlpha = 1;
+      c.strokeStyle = color;
       c.strokeRect(f.x, f.y, f.w, f.h);
-      c.fillStyle = "#90a496";
+      c.fillStyle = color;
       c.font = `${11 / v.zoom}px system-ui, sans-serif`;
       c.fillText(f.label, f.x + 10, f.y + 20 / v.zoom);
     }
@@ -1090,6 +1317,30 @@ export class EditorView {
           d.last.x - d.start.x,
           d.last.y - d.start.y,
         );
+      }
+    }
+    // Draw handles above neurons and edges so every resize target stays visible.
+    if (this.tool === "select") {
+      const f = net.groups.find((f) => f.id === this.selectedFrame);
+      if (f) {
+        c.strokeStyle = "#d6ed91";
+        c.setLineDash([4 / v.zoom, 4 / v.zoom]);
+        c.strokeRect(
+          f.x - 3 / v.zoom,
+          f.y - 3 / v.zoom,
+          f.w + 6 / v.zoom,
+          f.h + 6 / v.zoom,
+        );
+        c.setLineDash([]);
+        for (const [, x, y] of frameHandles)
+          circle(
+            c,
+            f.x + x * f.w,
+            f.y + y * f.h,
+            4.5 / v.zoom,
+            "#15221d",
+            "#d6ed91",
+          );
       }
     }
     document.getElementById("sampling")!.textContent =

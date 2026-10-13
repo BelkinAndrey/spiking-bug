@@ -1,5 +1,8 @@
 // Translate API diagnostics at the client boundary; the server protocol stays unchanged.
 export const serverMessages: Record<string, string> = {
+  "Испытание уже выполняется": "A trial is already running",
+  "Процесс испытания завершился без результата":
+    "The trial process exited without a result",
   "Ожидается JSON-объект": "Expected a JSON object",
   "Ошибка сервера; подробности в журнале":
     "Server error; see the log for details",

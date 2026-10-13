@@ -214,8 +214,6 @@ class World:
     def drive(self, motors, duration=DT):
         """Apply a direct motor command with collisions; no clock or physiology update."""
         a, c = self.agent, self.config
-        if a["health"] <= 0:
-            return
         a["heading"] = (
             a["heading"]
             + (motors.get("right", False) - motors.get("left", False)) * c["turn_speed"] * duration
@@ -233,28 +231,27 @@ class World:
         c = self.config
         a = self.agent
         self.elapsed += DT
-        if a["health"] > 0:
-            exhausted = a["fatigue"] >= 1.0
-            pose = (a["x"], a["y"], a["heading"])
-            self.drive(motors if manual is None else manual, 0.04 if manual is None else DT)
-            a["hunger"] = min(1.0, a["hunger"] + c["hunger_rate"] * DT)
-            a["fatigue"] = max(
-                0.0,
-                min(
-                    1.0,
-                    a["fatigue"]
-                    + sum(motors.values()) * c["fatigue_gain"]
-                    - c["fatigue_decay"] * DT,
-                ),
-            )
-            moved = pose != (a["x"], a["y"], a["heading"])
-            if moved and (exhausted or a["fatigue"] >= 1.0):
-                damage = min(a["health"], self.exhaustion_damage_rate * DT)
-                a["health"] -= damage
-                a["damage"] += damage
+        exhausted = a["fatigue"] >= 1.0
+        pose = (a["x"], a["y"], a["heading"])
+        self.drive(motors if manual is None else manual, 0.04 if manual is None else DT)
+        a["hunger"] = min(1.0, a["hunger"] + c["hunger_rate"] * DT)
+        a["fatigue"] = max(
+            0.0,
+            min(
+                1.0,
+                a["fatigue"]
+                + sum(motors.values()) * c["fatigue_gain"]
+                - c["fatigue_decay"] * DT,
+            ),
+        )
+        moved = pose != (a["x"], a["y"], a["heading"])
+        if moved and (exhausted or a["fatigue"] >= 1.0):
+            damage = min(a["health"], self.exhaustion_damage_rate * DT)
+            a["health"] -= damage
+            a["damage"] += damage
         for o in list(self.objects):
             d = math.hypot(o["x"] - a["x"], o["y"] - a["y"])
-            if o["kind"] == "food" and d < self.radius + 7 and a["health"] > 0:
+            if o["kind"] == "food" and d < self.radius + 7:
                 self.objects.remove(o)
                 a["eaten"] += 1
                 a["hunger"] = 0.0
@@ -273,7 +270,7 @@ class World:
                     o["state"] = "rest"
                 elif o["state"] == "chasing":
                     o["interest"] -= DT
-                    if not visible or o["interest"] <= 0 or a["health"] <= 0:
+                    if not visible or o["interest"] <= 0:
                         o["state"] = "rest"
                         o["rest"] = c["cooldown"]
                     else:
@@ -283,7 +280,7 @@ class World:
                             math.sin(angle) * c["speed"] * c["threat_speed_ratio"] * DT,
                             16,
                         )
-                elif visible and a["health"] > 0:
+                elif visible:
                     o["state"] = "chasing"
                     o["interest"] = c["chase_duration"]
                 else:

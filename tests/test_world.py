@@ -57,7 +57,7 @@ class WorldTests(unittest.TestCase):
         self.assertEqual(w.agent["x"], 588)
         self.assertEqual(w.agent["health"], 1.0)
 
-    def test_exhaustion_can_kill_and_stops_further_movement(self):
+    def test_zero_health_does_not_stop_neural_movement(self):
         w = world()
         w.agent.update(fatigue=1.0, health=0.00005)
         w.step(dict(forward=True))
@@ -65,7 +65,41 @@ class WorldTests(unittest.TestCase):
         self.assertAlmostEqual(w.agent["damage"], 0.00005)
         x = w.agent["x"]
         w.step(dict(forward=True))
-        self.assertEqual(w.agent["x"], x)
+        self.assertGreater(w.agent["x"], x)
+        self.assertEqual(w.agent["health"], 0.0)
+        self.assertAlmostEqual(w.agent["damage"], 0.00005)
+
+    def test_zero_health_keeps_manual_movement_and_collisions(self):
+        for paused in (False, True):
+            with self.subTest(paused=paused):
+                w = world()
+                w.agent["health"] = 0.0
+                def drive(motors):
+                    if paused:
+                        w.drive(motors)
+                    else:
+                        w.step({}, manual=motors)
+                drive(dict(forward=True, right=True))
+                self.assertGreater(w.agent["x"], 300)
+                self.assertGreater(w.agent["heading"], 0)
+                w.agent.update(x=588, heading=0)
+                drive(dict(forward=True))
+                self.assertEqual(w.agent["x"], 588)
+                drive(dict(backward=True))
+                self.assertLess(w.agent["x"], 588)
+                self.assertEqual(w.agent["health"], 0.0)
+
+    def test_zero_health_continues_physiology_and_food_can_restore_health(self):
+        w = world()
+        w.agent.update(health=0.0, fatigue=1.0, hunger=0.5)
+        w.step({})
+        self.assertLess(w.agent["fatigue"], 1.0)
+        self.assertGreater(w.agent["hunger"], 0.5)
+        w.add_object(dict(kind="food", x=300, y=300))
+        w.step({})
+        self.assertAlmostEqual(w.agent["health"], 0.12)
+        self.assertEqual(w.agent["hunger"], 0.0)
+        self.assertEqual(w.agent["eaten"], 1)
 
     def test_direct_paused_movement_does_not_apply_exhaustion_damage(self):
         w = world()

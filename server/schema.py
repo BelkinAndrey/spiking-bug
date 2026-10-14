@@ -108,6 +108,10 @@ def neuron(data):
     ).items():
         if n[k] not in options:
             raise ValueError(f"{k}: неизвестный режим")
+    if "rgb" in data:
+        from .development import rgb
+
+        n["rgb"] = rgb(data["rgb"])
     return n
 
 
@@ -169,11 +173,15 @@ def topology(data):
                 id=gid,
                 label=text(g.get("label", "Ganglion")),
                 members=members,
+                **{k: copy.deepcopy(g[k]) for k in ("rgb", "connector_rgb") if k in g},
                 x=number(g["x"], "x", -100000, 100000),
                 y=number(g["y"], "y", -100000, 100000),
                 radius=number(g["radius"], "radius", 30, MAX_GANGLION_RADIUS),
             )
         )
+    from .development import assign_coordinates
+
+    assign_coordinates(neurons, ganglia)
     synapses = []
     sids = set()
     expanded = 0
@@ -185,22 +193,26 @@ def topology(data):
             raise ValueError("Синапс должен быть объектом")
         source = s.get("source", s.get("from"))
         target = s.get("target", s.get("to"))
-        if source not in ids or target not in target_ids:
+        if source not in target_ids or target not in target_ids:
             raise ValueError(f"Связь {i}: неизвестный ID")
         kind = s.get("kind", "direct")
         if kind not in KINDS:
             raise ValueError("Неизвестный тип синапса")
         weight = number(s.get("weight", 1), "weight", -10000, 10000)
-        if kind == "direct" and (
-            (polarities[source] == "exc" and weight < 0)
-            or (polarities[source] == "inh" and weight > 0)
+        if (
+            kind == "direct"
+            and source in ids
+            and (
+                (polarities[source] == "exc" and weight < 0)
+                or (polarities[source] == "inh" and weight > 0)
+            )
         ):
             raise ValueError(f"{source}: знак связи противоречит полярности нейрона")
         sid = identifier(s.get("id", f"s{i}"))
         if sid in sids:
             raise ValueError("Повторяющийся ID синапса")
         sids.add(sid)
-        expanded += group_sizes.get(target, 1)
+        expanded += group_sizes.get(source, 1) * group_sizes.get(target, 1)
         if expanded > MAX_SYNAPSES:
             raise ValueError("С учётом коннекторов превышен лимит 500 000 связей")
         synapses.append(
@@ -343,7 +355,20 @@ def migrate_project(data):
         raise ValueError("Ожидается JSON-объект")
     if "topology" in data and data.get("version", 1) != 1:
         raise ValueError("Неизвестная версия эксперимента")
-    net = topology(data.get("topology", data))
+    raw_net = copy.deepcopy(data.get("topology", data))
+    raw_bindings = data.get("bindings", default_bindings())
+    if isinstance(raw_net, dict) and isinstance(raw_bindings, dict):
+        from .development import boundary_coordinate
+
+        assigned = {}
+        for i, channel in enumerate(SENSORS + MOTORS):
+            nid = raw_bindings.get(channel)
+            if isinstance(nid, str) and nid:
+                assigned.setdefault(nid, boundary_coordinate(i))
+        for n in raw_net.get("neurons", []):
+            if isinstance(n, dict) and n.get("id") in assigned and "rgb" not in n:
+                n["rgb"] = assigned[n["id"]]
+    net = topology(raw_net)
     ids = {n["id"] for n in net["neurons"]}
     b = data.get("bindings", {k: v if v in ids else "" for k, v in default_bindings().items()})
     world = data.get("world", {})
@@ -359,6 +384,7 @@ def migrate_project(data):
     return dict(
         version=1,
         name=text(data.get("name", "Untitled experiment")),
+        extensions=extensions(data.get("extensions", {})),
         topology=net,
         bindings=bindings(b, net),
         world={
@@ -368,3 +394,13 @@ def migrate_project(data):
             "spawn": copy.deepcopy(world.get("spawn", {"x": 300.0, "y": 800.0, "heading": 0.0})),
         },
     )
+
+
+def extensions(data):
+    import json
+
+    if not isinstance(data, dict):
+        raise ValueError("extensions: ожидается объект")
+    # JSON-only metadata, finite numbers; never executed or interpreted by the engine.
+    json.dumps(data, allow_nan=False)
+    return copy.deepcopy(data)

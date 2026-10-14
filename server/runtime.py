@@ -35,6 +35,7 @@ class Runtime:
         if path and path.exists():
             initial = json.loads(path.read_text())
         p = schema.migrate_project(initial)
+        self.extensions = p["extensions"]
         self.name = p["name"]
         self.world = World(p["world"])
         self.device_notice = ""
@@ -92,6 +93,7 @@ class Runtime:
     def project(self):
         return dict(
             version=1,
+            extensions=copy.deepcopy(self.extensions),
             name=self.name,
             topology=self.net.topology,
             bindings=self.bindings,
@@ -196,7 +198,7 @@ class Runtime:
                     for k, v in self.bindings.items()
                 }
                 old = self.net.topology
-                visual_keys = {"x", "y", "label"}
+                visual_keys = {"x", "y", "label", "rgb"}
 
                 def neuron_dynamics(ns):
                     return [{k: v for k, v in n.items() if k not in visual_keys} for n in ns]
@@ -262,6 +264,7 @@ class Runtime:
             elif action == "new_document":
                 self._replace_net(schema.default_topology(), preserve=False)
                 self.bindings = schema.default_bindings()
+                self.extensions = {}
                 self.name = "Новая нервная система"
                 self.running = False
                 self.manual = {}
@@ -278,6 +281,7 @@ class Runtime:
                 self.running = False
                 self.manual = {}
                 self.inject.clear()
+                self.extensions = p["extensions"]
                 self.name = p["name"]
                 self.world = world
                 self.net = net

@@ -43,10 +43,17 @@ when a scene is imported; neural IDs are not.
 (`mixed`, `exc`, `inh`). Kind affects visual classification; **bindings** determine
 actual sensor/motor function. `v_reset` is retained only as legacy metadata.
 
+`rgb: [r,g,b]` is optional on input and always supplied on output. Values are finite
+numbers in [0,1], independent of x/y and excluded from CPU/GPU compute arrays.
+Legacy coordinates and collision resolution are deterministic; see [Evolution](evolution.md).
+
 ## Ganglion
 
-`id`, `label`, `x`, `y`, `radius`, `members` (neuron IDs). Its ID can be a synapse
-target, never a source. Empty ganglia and overlapping memberships are rejected.
+`id`, `label`, `x`, `y`, `radius`, `members` (neuron IDs), `rgb`, `connector_rgb`.
+Its ID can be either synapse endpoint. Inputs broadcast to all members; outputs
+forward each member spike, with direct signs following member polarity. A pair of
+connectors expands to a Cartesian product, counted against the 500,000-edge limit.
+The connector has no neural dynamics or additional delay. Empty ganglia and overlapping memberships are rejected.
 Deleting selected neurons removes their connections and memberships and disconnects
 any bound channels in one edit. IDs share a namespace with ganglia.
 
@@ -116,3 +123,20 @@ Run `python scripts/create_experiment.py --seed 23 --output experiment.json`,
 then import the JSON into either client. This demonstrates the public format;
 script execution is outside the web server. The world JSON dialog accepts data,
 never executes Python or JavaScript, and replaces the scene on Apply.
+
+
+## Evolution extension and API
+
+Top-level `extensions` contains finite JSON metadata preserved by import, editing,
+save and export. `extensions.evolution` version 1 stores the genotype, decoder
+version, provenance, settings and evaluations alongside an ordinary executable
+topology/bindings/world document. Editing a phenotype does not rewrite its stored
+genotype or historical evaluation. See [Evolution](evolution.md) for the four-block
+format, RGB namespaces, deterministic decoding and server job/archive endpoints.
+
+Genome version 2 adds explicit inherited architecture for `mode=current`: A holds
+concrete neurons, C can hold `members` instead of `recipe`, and B can hold
+`{id, type: "synapse", synapse: {...}}` records. `order` preserves execution order,
+and `frames` preserves visual groups. Genome/decoder version 1 remains readable.
+Starting from the current network explicitly incorporates phenotype edits;
+continuing from the saved genome uses its stored genes.

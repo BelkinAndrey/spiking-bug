@@ -1,5 +1,68 @@
 // Translate API diagnostics at the client boundary; the server protocol stays unchanged.
 export const serverMessages: Record<string, string> = {
+  "ID генома: повтор или превышение допустимой длины":
+    "Genome ID: duplicate or length limit exceeded",
+  "Ганглий не может одновременно содержать members и recipe":
+    "A ganglion cannot contain both members and a recipe",
+  "Явные синапсы допустимы только в блоке B":
+    "Explicit synapses are only allowed in block B",
+  "Явная архитектура требует геном версии 2":
+    "Explicit architecture requires genome version 2",
+  "Некорректный порядок элементов генома": "Invalid genome element order",
+  "Текущая сеть содержит запрещённый тип связи":
+    "The current network contains a disallowed synapse type",
+  "Текущая сеть содержит запрещённый знак прямой связи":
+    "The current network contains a disallowed direct synapse sign",
+
+  "Эволюция уже выполняется": "Evolution is already running",
+  "Сервер был перезапущен; сохранённые результаты доступны":
+    "Server restarted; saved results are available",
+  "Не удалось запустить процесс": "Could not start the process",
+  "Исходная сеть превышает бюджет памяти":
+    "The baseline network exceeds the memory budget",
+  "Бюджет памяти популяции": "Population memory budget exceeded",
+  "Бюджет нейронов": "Neuron budget exceeded",
+  "Бюджет синапсов": "Synapse budget exceeded",
+  "Бюджет развёрнутых синапсов": "Expanded synapse budget exceeded",
+  "Бюджет проверки пар": "Pair checking budget exceeded",
+  "Бюджет правил": "Rule budget exceeded",
+  "Бюджет блока {0}": "Block {0} budget exceeded",
+  "Неизвестная версия генома / декодера": "Unknown genome / decoder version",
+  "ID генома: уникальные, не длиннее 48 символов":
+    "Genome IDs must be unique and no longer than 48 characters",
+  "Изменён замороженный нейрон {0}": "Frozen neuron {0} has changed",
+  "Изменены замороженные bindings": "Frozen bindings have changed",
+  "Пресет запрещает ганглии": "This preset does not allow ganglia",
+  "Запрещённый тип внутренних связей": "Internal synapse type is not allowed",
+  "Внутренние тормозящие связи запрещены":
+    "Internal inhibitory synapses are not allowed",
+  "Внутренние возбуждающие связи запрещены":
+    "Internal excitatory synapses are not allowed",
+  "Неизвестный фильтр полярности": "Unknown polarity filter",
+  "Недопустимый тип связи / задержка": "Invalid synapse type / delay",
+  "Знак прямой связи запрещён": "Direct synapse sign is not allowed",
+  "Для продолжения откройте сохранённый экземпляр эволюции":
+    "Open a saved evolution specimen to continue",
+  "Назначьте сенсоры и актуаторы перед эволюцией":
+    "Bind sensors and actuators before starting evolution",
+  "Не удалось создать допустимого потомка: {0}":
+    "Could not create a valid offspring: {0}",
+  "RGB: ожидаются три координаты": "RGB: expected three coordinates",
+  "{0}: ожидается объект": "{0}: expected an object",
+  "elite должен быть меньше population":
+    "Elite count must be less than population size",
+  "Поисковые и проверочные seed должны различаться":
+    "Search and validation seed panels must not overlap",
+  "Неизвестный пресет": "Unknown preset",
+  "Неизвестный режим запуска": "Unknown start mode",
+  "Выберите хотя бы один тип связей": "Select at least one synapse type",
+  "Некорректный ID экземпляра": "Invalid specimen ID",
+  "Экземпляр не найден": "Specimen not found",
+  "Экземпляр вытеснен из автоматического архива":
+    "The specimen was evicted from the automatic archive",
+  "Лимит: 100 вручную сохранённых экземпляров":
+    "Limit: 100 manually saved specimens",
+
   "Испытание уже выполняется": "A trial is already running",
   "Процесс испытания завершился без результата":
     "The trial process exited without a result",

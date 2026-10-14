@@ -51,16 +51,15 @@ class Network:
         weights = []
         delays = []
         kinds = []
+        from .development import expand_synapse
+
+        nodes = {n["id"]: n for n in ns}
+        members = {g["id"]: g["members"] for g in topology["ganglia"]}
         for s in topology["synapses"]:
-            target = (
-                self.groups[s["target"]]
-                if s["target"] in self.groups
-                else [self.index[s["target"]]]
-            )
-            for t in target:
-                sources.append(self.index[s["source"]])
-                targets.append(t)
-                weights.append(s["weight"])
+            for source, target, weight in expand_synapse(s, nodes, members):
+                sources.append(self.index[source])
+                targets.append(self.index[target])
+                weights.append(weight)
                 delays.append(s["delay"])
                 kinds.append(KINDS.index(s["kind"]))
         self.sources = np.array(sources, np.int32)

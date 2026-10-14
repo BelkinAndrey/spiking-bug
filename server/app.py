@@ -10,12 +10,15 @@ from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import HTTPException
 from .runtime import Runtime, Conflict
 from .trials import Trials
+from .evolution import Evolution
 
 
 def create_app(runtime):
     app = Flask(__name__)
     trials = Trials()
     app.extensions["trials"] = trials
+    evolution = Evolution(runtime.path.parent / "evolution" if runtime.path else None)
+    app.extensions["evolution"] = evolution
     # Large generated topologies must also support import and structural edits.
     app.config["MAX_CONTENT_LENGTH"] = 512 * 1024 * 1024
 
@@ -49,6 +52,29 @@ def create_app(runtime):
         if not isinstance(data, dict):
             raise ValueError("Ожидается JSON-объект")
         return jsonify(trials.cancel(data.get("id")))
+
+    @app.get("/api/evolution")
+    def evolution_status():
+        return jsonify(evolution.snapshot())
+
+    @app.post("/api/evolution")
+    def start_evolution():
+        data = request.get_json()
+        if not isinstance(data, dict):
+            raise ValueError("Ожидается JSON-объект")
+        return jsonify(evolution.start(runtime, data.get("settings", {}), data.get("revision")))
+
+    @app.post("/api/evolution/cancel")
+    def cancel_evolution():
+        return jsonify(evolution.cancel(request.get_json()["id"]))
+
+    @app.get("/api/evolution/artifact/<run>/<name>")
+    def evolution_artifact(run, name):
+        return jsonify(evolution.artifact(run + "/" + name))
+
+    @app.post("/api/evolution/save")
+    def save_evolution():
+        return jsonify(evolution.pin(request.get_json()["id"]))
 
     @app.get("/api/devices")
     def compute_devices():
@@ -115,6 +141,7 @@ def main():
     finally:
         runtime.stop_event.set()
         app.extensions["trials"].close()
+        app.extensions["evolution"].close()
 
 
 if __name__ == "__main__":

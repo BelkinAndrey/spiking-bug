@@ -14,7 +14,7 @@ from .schema import (
 )
 
 
-def ganglion(net, params):
+def ganglion(net, params, stop=None):
     gid = identifier(params.get("id", "g1"))
     count = number(params.get("count", 40), "count", 1, MAX_GANGLION_NEURONS, True)
     if len(net["neurons"]) + count > MAX_NEURONS:
@@ -31,11 +31,14 @@ def ganglion(net, params):
     seed = number(params.get("seed", 42), "seed", 0, 2147483647, True)
     x = number(params.get("x", 550), "x", -90000, 90000)
     y = number(params.get("y", 400), "y", -90000, 90000)
+    edge_limit = number(params.get("edge_limit", MAX_SYNAPSES), "edge_limit", 0, MAX_SYNAPSES, True)
     rng = random.Random(seed)
     members = []
     ns = []
     ss = []
     for i in range(count):
+        if stop is not None and i % 256 == 0 and stop.is_set():
+            raise InterruptedError("Развитие остановлено")
         a = rng.random() * math.tau
         r = math.sqrt(rng.random()) * radius * 0.86
         nid = f"{gid}.n{i + 1}"
@@ -55,6 +58,8 @@ def ganglion(net, params):
         )
     # Geometric skips generate Bernoulli edges without a dense adjacency matrix.
     for i, n in enumerate(ns):
+        if stop is not None and stop.is_set():
+            raise InterruptedError("Развитие остановлено")
         j = -1
         while density > 0:
             j += 1 if density == 1 else 1 + int(math.log1p(-rng.random()) / math.log1p(-density))
@@ -79,7 +84,7 @@ def ganglion(net, params):
                     delay=delay,
                 )
             )
-            if len(ss) + len(net["synapses"]) > MAX_SYNAPSES:
+            if len(ss) + len(net["synapses"]) > edge_limit:
                 raise ValueError("Слишком много связей; уменьшите плотность")
     return topology(
         {
@@ -152,7 +157,7 @@ def maze(width, height, cols=12, rows=8, seed=42):
     return walls, dict(x=cellw / 2, y=cellh / 2, heading=0.0)
 
 
-def connect_ganglia(net, params):
+def connect_ganglia(net, params, stop=None):
     """Generate directed neuron-to-neuron edges, excluding existing same-kind pairs."""
     groups = {g["id"]: g for g in net["ganglia"]}
     source, target = params.get("source"), params.get("target")
@@ -173,6 +178,7 @@ def connect_ganglia(net, params):
     if target_polarity not in ("any", "exc", "inh"):
         raise ValueError("Неизвестный тип целевых нейронов")
     prefix = identifier(params.get("id", f"projection_{seed}"))
+    edge_limit = number(params.get("edge_limit", MAX_SYNAPSES), "edge_limit", 0, MAX_SYNAPSES, True)
     rng = random.Random(seed)
     nodes = {n["id"]: n for n in net["neurons"]}
     pairs = {(s["source"], s["target"], s["kind"]) for s in net["synapses"]}
@@ -184,6 +190,8 @@ def connect_ganglia(net, params):
         if target_polarity == "any" or nodes[nid]["polarity"] == target_polarity
     ]
     for i, src in enumerate(groups[source]["members"]):
+        if stop is not None and stop.is_set():
+            raise InterruptedError("Развитие остановлено")
         if source_polarity != "any" and nodes[src]["polarity"] != source_polarity:
             continue
         j = -1
@@ -207,6 +215,6 @@ def connect_ganglia(net, params):
                 suffix += 1
             used_ids.add(sid)
             additions.append(dict(id=sid, source=src, target=dst, kind=kind, weight=w, delay=delay))
-            if len(net["synapses"]) + len(additions) > MAX_SYNAPSES:
+            if len(net["synapses"]) + len(additions) > edge_limit:
                 raise ValueError("Слишком много связей; уменьшите плотность")
     return topology({**net, "synapses": net["synapses"] + additions})

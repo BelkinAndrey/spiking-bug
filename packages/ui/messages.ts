@@ -1,5 +1,7 @@
+import { evolutionMessages } from "./evolution-messages";
 // Russian source messages are stable keys; project data is never translated.
 export const messages = {
+  ...evolutionMessages,
   Испытание: "Trial",
   "Испытание нейронной сети": "Neural network trial",
   Закрыть: "Close",

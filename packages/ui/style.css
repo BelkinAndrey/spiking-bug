@@ -1124,3 +1124,13 @@ a:focus-visible {
     padding: 16px;
   }
 }
+
+.evolution-dialog { width: min(1020px, 94vw); }
+.evolution-dialog details { margin: 16px 0; }
+.evolution-dialog summary { cursor: pointer; margin-bottom: 12px; }
+.evolution-tools { display: flex; flex-wrap: wrap; gap: 12px 22px; margin: 16px 0; }
+.evolution-tools input { width: auto; }
+.evolution-dialog canvas { width: 100%; height: 210px; background: #111c18; border-radius: 8px; }
+.evolution-artifact { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #354039; }
+.evolution-artifact small { display: block; color: var(--muted); margin-top: 5px; }
+@media (max-width: 650px) { .evolution-artifact { align-items: start; flex-direction: column; } }

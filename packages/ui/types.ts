@@ -1,6 +1,7 @@
 import { t } from "./i18n";
 export type Mode = "environment" | "editor";
 export interface Neuron {
+  rgb?: [number, number, number];
   id: string;
   label: string;
   kind: "sensor" | "motor" | "inter";
@@ -29,6 +30,8 @@ export interface Synapse {
   kind: "direct" | "mod_exc" | "mod_inh";
 }
 export interface Ganglion {
+  rgb?: [number, number, number];
+  connector_rgb?: [number, number, number];
   id: string;
   label: string;
   x: number;
@@ -96,6 +99,7 @@ export interface Zone {
   h: number;
 }
 export interface Project {
+  extensions?: Record<string, unknown>;
   compute: { device: string };
   version: number;
   name: string;

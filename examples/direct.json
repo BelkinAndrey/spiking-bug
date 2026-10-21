@@ -1,0 +1,1320 @@
+{
+  "version": 1,
+  "name": "Жук — выживание 20 минут",
+  "topology": {
+    "format_version": 3,
+    "task": "BUG",
+    "neurons": [
+      {
+        "label": "Food Left",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 80.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "sensor_food_left",
+        "rgb": [
+          0.0,
+          0.6180339887498949,
+          0.4142135623730951
+        ]
+      },
+      {
+        "label": "Food Right",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 146.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "sensor_food_right",
+        "rgb": [
+          1.0,
+          0.2360679774997898,
+          0.8284271247461902
+        ]
+      },
+      {
+        "label": "Threat Left",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 212.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "sensor_threat_left",
+        "rgb": [
+          0.8541019662496847,
+          0.0,
+          0.24264068711928521
+        ]
+      },
+      {
+        "label": "Threat Right",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 278.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "sensor_threat_right",
+        "rgb": [
+          0.4721359549995796,
+          1.0,
+          0.6568542494923804
+        ]
+      },
+      {
+        "label": "Hunger",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 344.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "sensor_hunger",
+        "rgb": [
+          0.09016994374947451,
+          0.0710678118654755,
+          0.0
+        ]
+      },
+      {
+        "label": "Fatigue",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 410.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "sensor_fatigue",
+        "rgb": [
+          0.7082039324993694,
+          0.48528137423857043,
+          1.0
+        ]
+      },
+      {
+        "label": "Lidar 0",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 476.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "lidar_0",
+        "rgb": [
+          0.0,
+          0.3262379212492643,
+          0.8994949366116658
+        ]
+      },
+      {
+        "label": "Lidar 1",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 542.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "lidar_1",
+        "rgb": [
+          1.0,
+          0.9442719099991592,
+          0.3137084989847607
+        ]
+      },
+      {
+        "label": "Lidar 2",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 608.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "lidar_2",
+        "rgb": [
+          0.5623058987490541,
+          0.0,
+          0.7279220613578556
+        ]
+      },
+      {
+        "label": "Lidar 3",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 674.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "lidar_3",
+        "rgb": [
+          0.18033988749894903,
+          1.0,
+          0.142135623730951
+        ]
+      },
+      {
+        "label": "Lidar 4",
+        "kind": "sensor",
+        "x": 100.0,
+        "y": 740.0,
+        "threshold": 1.0,
+        "leak": 0.02,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 2,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "lidar_4",
+        "rgb": [
+          0.7983738762488439,
+          0.5563491861040459,
+          0.0
+        ]
+      },
+      {
+        "label": "Forward",
+        "kind": "motor",
+        "x": 1000.0,
+        "y": 200.0,
+        "threshold": 1.0,
+        "leak": 0.12,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 3,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "motor_forward",
+        "rgb": [
+          0.41640786499873883,
+          0.9705627484771409,
+          1.0
+        ]
+      },
+      {
+        "label": "Backward",
+        "kind": "motor",
+        "x": 1000.0,
+        "y": 325.0,
+        "threshold": 1.0,
+        "leak": 0.12,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 3,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "motor_backward",
+        "rgb": [
+          0.0,
+          0.03444185374863373,
+          0.3847763108502358
+        ]
+      },
+      {
+        "label": "Left",
+        "kind": "motor",
+        "x": 1000.0,
+        "y": 450.0,
+        "threshold": 1.0,
+        "leak": 0.12,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 3,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "motor_left",
+        "rgb": [
+          1.0,
+          0.6524758424985286,
+          0.7989898732233316
+        ]
+      },
+      {
+        "label": "Right",
+        "kind": "motor",
+        "x": 1000.0,
+        "y": 575.0,
+        "threshold": 1.0,
+        "leak": 0.12,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 3,
+        "noise_std": 0.0,
+        "bias": 0.0,
+        "reset_mode": "retain",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "motor_right",
+        "rgb": [
+          0.27050983124842354,
+          0.0,
+          0.21320343559642652
+        ]
+      },
+      {
+        "label": "Ходовой ритм",
+        "kind": "inter",
+        "x": 500,
+        "y": 150,
+        "threshold": 1.0,
+        "leak": 0.0,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 0,
+        "noise_std": 0.0,
+        "bias": 0.08442469623241763,
+        "reset_mode": "reset",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "pace",
+        "rgb": [
+          0.11941344270469002,
+          0.0,
+          0.13390129621464322
+        ]
+      },
+      {
+        "label": "Тонус рецепторов",
+        "kind": "inter",
+        "x": 500,
+        "y": 400,
+        "threshold": 1.0,
+        "leak": 0.0,
+        "v_reset": 0.0,
+        "v_min": -100.0,
+        "refractory": 0,
+        "noise_std": 0.0,
+        "bias": 1.1,
+        "reset_mode": "reset",
+        "mod_tau_exc": 2.0,
+        "mod_tau_inh": 2.0,
+        "mod_gain_exc": 1.0,
+        "mod_gain_inh": 1.0,
+        "polarity": "mixed",
+        "id": "sensor_tone",
+        "rgb": [
+          0.024461702216524096,
+          0.832163459116631,
+          0.0
+        ]
+      }
+    ],
+    "synapses": [
+      {
+        "id": "s0",
+        "source": "pace",
+        "target": "motor_forward",
+        "kind": "direct",
+        "weight": 1.3288825107424997,
+        "delay": 1
+      },
+      {
+        "id": "s1",
+        "source": "sensor_food_left",
+        "target": "motor_left",
+        "kind": "direct",
+        "weight": 0.6660995436695736,
+        "delay": 1
+      },
+      {
+        "id": "s2",
+        "source": "sensor_food_left",
+        "target": "motor_right",
+        "kind": "direct",
+        "weight": -0.741227513271383,
+        "delay": 1
+      },
+      {
+        "id": "s3",
+        "source": "sensor_threat_left",
+        "target": "motor_right",
+        "kind": "direct",
+        "weight": 2.016237891972936,
+        "delay": 1
+      },
+      {
+        "id": "s4",
+        "source": "sensor_threat_left",
+        "target": "motor_left",
+        "kind": "direct",
+        "weight": -0.7711481566004061,
+        "delay": 1
+      },
+      {
+        "id": "s5",
+        "source": "sensor_threat_left",
+        "target": "motor_forward",
+        "kind": "direct",
+        "weight": 1.2202300890297897,
+        "delay": 1
+      },
+      {
+        "id": "s6",
+        "source": "sensor_food_right",
+        "target": "motor_right",
+        "kind": "direct",
+        "weight": 0.6660995436695736,
+        "delay": 1
+      },
+      {
+        "id": "s7",
+        "source": "sensor_food_right",
+        "target": "motor_left",
+        "kind": "direct",
+        "weight": -0.741227513271383,
+        "delay": 1
+      },
+      {
+        "id": "s8",
+        "source": "sensor_threat_right",
+        "target": "motor_left",
+        "kind": "direct",
+        "weight": 2.016237891972936,
+        "delay": 1
+      },
+      {
+        "id": "s9",
+        "source": "sensor_threat_right",
+        "target": "motor_right",
+        "kind": "direct",
+        "weight": -0.7711481566004061,
+        "delay": 1
+      },
+      {
+        "id": "s10",
+        "source": "sensor_threat_right",
+        "target": "motor_forward",
+        "kind": "direct",
+        "weight": 1.2202300890297897,
+        "delay": 1
+      },
+      {
+        "id": "s11",
+        "source": "lidar_0",
+        "target": "motor_right",
+        "kind": "direct",
+        "weight": 0.7761644043008752,
+        "delay": 1
+      },
+      {
+        "id": "s12",
+        "source": "lidar_4",
+        "target": "motor_left",
+        "kind": "direct",
+        "weight": 0.7761644043008752,
+        "delay": 1
+      },
+      {
+        "id": "s13",
+        "source": "lidar_0",
+        "target": "motor_left",
+        "kind": "direct",
+        "weight": -0.23325979213704517,
+        "delay": 1
+      },
+      {
+        "id": "s14",
+        "source": "lidar_4",
+        "target": "motor_right",
+        "kind": "direct",
+        "weight": -0.23325979213704517,
+        "delay": 1
+      },
+      {
+        "id": "s15",
+        "source": "lidar_2",
+        "target": "motor_left",
+        "kind": "direct",
+        "weight": 2.3657653865992128,
+        "delay": 1
+      },
+      {
+        "id": "s16",
+        "source": "lidar_2",
+        "target": "motor_right",
+        "kind": "direct",
+        "weight": -2.3657653865992128,
+        "delay": 1
+      },
+      {
+        "id": "s17",
+        "source": "lidar_2",
+        "target": "motor_forward",
+        "kind": "direct",
+        "weight": -0.6190468420889061,
+        "delay": 1
+      },
+      {
+        "id": "s19",
+        "source": "motor_left",
+        "target": "motor_forward",
+        "kind": "direct",
+        "weight": -0.16885299192573278,
+        "delay": 1
+      },
+      {
+        "id": "s20",
+        "source": "motor_right",
+        "target": "motor_forward",
+        "kind": "direct",
+        "weight": -0.16885299192573278,
+        "delay": 1
+      },
+      {
+        "id": "s21",
+        "source": "sensor_food_left",
+        "target": "sensor_food_left",
+        "kind": "direct",
+        "weight": -1.1458878492318452,
+        "delay": 1
+      },
+      {
+        "id": "s22",
+        "source": "sensor_tone",
+        "target": "sensor_food_left",
+        "kind": "direct",
+        "weight": 0.022,
+        "delay": 1
+      },
+      {
+        "id": "s23",
+        "source": "sensor_food_right",
+        "target": "sensor_food_right",
+        "kind": "direct",
+        "weight": -1.1458878492318452,
+        "delay": 1
+      },
+      {
+        "id": "s24",
+        "source": "sensor_tone",
+        "target": "sensor_food_right",
+        "kind": "direct",
+        "weight": 0.022,
+        "delay": 1
+      },
+      {
+        "id": "s25",
+        "source": "sensor_threat_left",
+        "target": "sensor_threat_left",
+        "kind": "direct",
+        "weight": -1.1458878492318452,
+        "delay": 1
+      },
+      {
+        "id": "s26",
+        "source": "sensor_tone",
+        "target": "sensor_threat_left",
+        "kind": "direct",
+        "weight": 0.022,
+        "delay": 1
+      },
+      {
+        "id": "s27",
+        "source": "sensor_threat_right",
+        "target": "sensor_threat_right",
+        "kind": "direct",
+        "weight": -1.1458878492318452,
+        "delay": 1
+      },
+      {
+        "id": "s28",
+        "source": "sensor_tone",
+        "target": "sensor_threat_right",
+        "kind": "direct",
+        "weight": 0.022,
+        "delay": 1
+      }
+    ],
+    "ganglia": [],
+    "groups": []
+  },
+  "bindings": {
+    "food_left": "sensor_food_left",
+    "food_right": "sensor_food_right",
+    "threat_left": "sensor_threat_left",
+    "threat_right": "sensor_threat_right",
+    "hunger": "sensor_hunger",
+    "fatigue": "sensor_fatigue",
+    "lidar_0": "lidar_0",
+    "lidar_1": "lidar_1",
+    "lidar_2": "lidar_2",
+    "lidar_3": "lidar_3",
+    "lidar_4": "lidar_4",
+    "forward": "motor_forward",
+    "backward": "motor_backward",
+    "left": "motor_left",
+    "right": "motor_right"
+  },
+  "world": {
+    "config": {
+      "width": 2400.0,
+      "height": 1600.0,
+      "food_target": 35,
+      "food_interval": 0.3,
+      "threat_target": 3,
+      "threat_mode": "pursuit",
+      "threat_radius": 380.0,
+      "threat_speed_ratio": 0.5,
+      "chase_duration": 5.0,
+      "cooldown": 4.0,
+      "threat_lifetime": 60.0,
+      "speed": 150.0,
+      "turn_speed": 3.0,
+      "sensor_range": 500.0,
+      "lidar_range": 180.0,
+      "hunger_rate": 0.02,
+      "fatigue_gain": 0.025,
+      "fatigue_decay": 0.07,
+      "seed": 42
+    },
+    "spawn": {
+      "heading": 0,
+      "x": 300,
+      "y": 800
+    },
+    "zones": [],
+    "objects": [
+      {
+        "id": "o1",
+        "kind": "food",
+        "x": 1532.6723411205107,
+        "y": 46.66705778314976
+      },
+      {
+        "id": "o2",
+        "kind": "food",
+        "x": 1764.2203169953336,
+        "y": 1080.2453870527374
+      },
+      {
+        "id": "o3",
+        "kind": "food",
+        "x": 532.9713241891023,
+        "y": 941.5753746271912
+      },
+      {
+        "id": "o4",
+        "kind": "food",
+        "x": 1938.3010696332944,
+        "y": 17.307032849404774
+      },
+      {
+        "id": "o5",
+        "kind": "food",
+        "x": 1286.4402262109159,
+        "y": 1550.3616016712817
+      },
+      {
+        "id": "o6",
+        "kind": "food",
+        "x": 2063.0326641415145,
+        "y": 922.6805023772246
+      },
+      {
+        "id": "o7",
+        "kind": "food",
+        "x": 1688.1084012088074,
+        "y": 79.67747247788027
+      },
+      {
+        "id": "o8",
+        "kind": "food",
+        "x": 644.0090834091844,
+        "y": 1492.5341761120155
+      },
+      {
+        "id": "o9",
+        "kind": "food",
+        "x": 415.3368146006594,
+        "y": 1163.3951015492537
+      },
+      {
+        "id": "o10",
+        "kind": "food",
+        "x": 2368.0027146189163,
+        "y": 1022.0396191285913
+      },
+      {
+        "id": "o11",
+        "kind": "food",
+        "x": 1532.6723411205107,
+        "y": 46.66705778314976
+      },
+      {
+        "id": "o12",
+        "kind": "food",
+        "x": 1532.6723411205107,
+        "y": 46.66705778314976
+      },
+      {
+        "id": "o13",
+        "kind": "food",
+        "x": 644.0090834091844,
+        "y": 1492.5341761120155
+      },
+      {
+        "id": "o14",
+        "kind": "food",
+        "x": 2368.0027146189163,
+        "y": 1022.0396191285913
+      },
+      {
+        "id": "o15",
+        "kind": "food",
+        "x": 2018.0446815728858,
+        "y": 1237.7358597123443
+      },
+      {
+        "id": "o16",
+        "kind": "food",
+        "x": 1201.3984657380117,
+        "y": 290.3418825207884
+      },
+      {
+        "id": "o17",
+        "kind": "food",
+        "x": 8.364544161273203,
+        "y": 521.1115064094115
+      },
+      {
+        "id": "o18",
+        "kind": "food",
+        "x": 53.47150733259587,
+        "y": 1480.5504053956827
+      },
+      {
+        "id": "o19",
+        "kind": "food",
+        "x": 228.2915823050329,
+        "y": 160.3921736578739
+      },
+      {
+        "id": "o20",
+        "kind": "food",
+        "x": 2368.0027146189163,
+        "y": 1022.0396191285913
+      },
+      {
+        "id": "o21",
+        "kind": "food",
+        "x": 158.5771068785697,
+        "y": 612.2481883993673
+      },
+      {
+        "id": "o22",
+        "kind": "food",
+        "x": 643.644903226767,
+        "y": 1023.5654125475755
+      },
+      {
+        "id": "o23",
+        "kind": "food",
+        "x": 53.47150733259587,
+        "y": 1480.5504053956827
+      },
+      {
+        "id": "o24",
+        "kind": "food",
+        "x": 1834.2809483264728,
+        "y": 210.6288626966238
+      },
+      {
+        "id": "o25",
+        "kind": "food",
+        "x": 2381.426364992895,
+        "y": 1037.7065994161733
+      },
+      {
+        "id": "o26",
+        "kind": "food",
+        "x": 574.8790576044225,
+        "y": 1067.998756377901
+      },
+      {
+        "id": "o27",
+        "kind": "food",
+        "x": 1933.6878366712112,
+        "y": 308.99012417793807
+      },
+      {
+        "id": "o28",
+        "kind": "food",
+        "x": 238.27692274997244,
+        "y": 690.6471752965148
+      },
+      {
+        "id": "o29",
+        "kind": "food",
+        "x": 460.83845553977625,
+        "y": 718.5010868633472
+      },
+      {
+        "id": "o30",
+        "kind": "food",
+        "x": 1165.7397253254142,
+        "y": 346.00321652990215
+      },
+      {
+        "id": "o31",
+        "kind": "food",
+        "x": 2291.1598910911803,
+        "y": 1585.7403855354441
+      },
+      {
+        "id": "o32",
+        "kind": "food",
+        "x": 1333.063219645805,
+        "y": 1146.395524619973
+      },
+      {
+        "id": "o33",
+        "kind": "threat",
+        "x": 976.3717924677063,
+        "y": 104.71300978142541,
+        "mode": "pursuit"
+      },
+      {
+        "id": "o34",
+        "kind": "threat",
+        "x": 2309.903776246968,
+        "y": 924.1546959998898,
+        "mode": "pursuit"
+      },
+      {
+        "id": "o35",
+        "kind": "threat",
+        "x": 1299.9182368542813,
+        "y": 1188.8256786743725,
+        "mode": "pursuit"
+      },
+      {
+        "id": "o36",
+        "kind": "food",
+        "x": 143.39634115725462,
+        "y": 933.5056648119283
+      },
+      {
+        "id": "o37",
+        "kind": "food",
+        "x": 1206.8010136459593,
+        "y": 1359.4137487885805
+      },
+      {
+        "id": "o38",
+        "kind": "food",
+        "x": 382.6344888636071,
+        "y": 1530.7953405932783
+      }
+    ]
+  },
+  "compute": {
+    "device": "cpu"
+  },
+  "extensions": {
+    "survival_design": {
+      "parameters": {
+        "pace": 0.08442469623241763,
+        "drive": 1.3288825107424997,
+        "food": 0.6660995436695736,
+        "cross": 0.741227513271383,
+        "front": 2.3657653865992128,
+        "brake": 0.6190468420889061,
+        "wall": 0.7761644043008752,
+        "wall_inh": 0.23325979213704517,
+        "threat": 2.016237891972936,
+        "threat_inh": 0.7711481566004061,
+        "escape": 1.2202300890297897,
+        "fatigue": 0,
+        "turn_brake": 0.16885299192573278,
+        "sensory_reset": 1.1458878492318452,
+        "sensor_tone": 0.022,
+        "motor_reset": 0
+      },
+      "evaluations": [
+        {
+          "attempt": 1,
+          "seed": 44,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 71,
+          "food_per_minute": 3.55,
+          "health": 68.93500000000343,
+          "damage": 261.25000000010664,
+          "distance": 120486.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.431470588235294
+        },
+        {
+          "attempt": 1,
+          "seed": 42,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 67,
+          "food_per_minute": 3.35,
+          "health": 91.8400000000009,
+          "damage": 256.64000000009946,
+          "distance": 119610.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.48735294117647
+        },
+        {
+          "attempt": 1,
+          "seed": 45,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 59,
+          "food_per_minute": 2.95,
+          "health": 47.230000000021555,
+          "damage": 263.0700000001136,
+          "distance": 120732.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.424117647058823
+        }
+      ],
+      "held_out_validation": [
+        {
+          "attempt": 1,
+          "seed": 201,
+          "duration": 247.71,
+          "survived": false,
+          "food": 6,
+          "food_per_minute": 1.4533123410439626,
+          "health": 0.0,
+          "damage": 61.869999999995926,
+          "distance": 25176.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.392812278114588,
+          "randomize": false
+        },
+        {
+          "attempt": 1,
+          "seed": 43,
+          "duration": 757.58,
+          "survived": false,
+          "food": 38,
+          "food_per_minute": 3.0095831463343803,
+          "health": 0.0,
+          "damage": 163.8999999999841,
+          "distance": 75474.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.410570500805195,
+          "randomize": false
+        },
+        {
+          "attempt": 1,
+          "seed": 202,
+          "duration": 544.99,
+          "survived": false,
+          "food": 29,
+          "food_per_minute": 3.192719132461146,
+          "health": 0.0,
+          "damage": 117.4999999999891,
+          "distance": 53657.99999999999,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.486359706546153,
+          "randomize": false
+        },
+        {
+          "attempt": 1,
+          "seed": 46,
+          "duration": 1032.34,
+          "survived": false,
+          "food": 52,
+          "food_per_minute": 3.0222601081039193,
+          "health": 0.0,
+          "damage": 223.6700000000302,
+          "distance": 101892.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.501695177945251,
+          "randomize": false
+        },
+        {
+          "attempt": 1,
+          "seed": 200,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 64,
+          "food_per_minute": 3.2,
+          "health": 85.42500000000409,
+          "damage": 265.91000000010115,
+          "distance": 118794.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.539117647058823,
+          "randomize": false
+        },
+        {
+          "attempt": 1,
+          "seed": 203,
+          "duration": 761.03,
+          "survived": false,
+          "food": 40,
+          "food_per_minute": 3.1536207508245404,
+          "health": 0.0,
+          "damage": 187.33999999998326,
+          "distance": 76866.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.447758494486187,
+          "randomize": false
+        },
+        {
+          "attempt": 1,
+          "seed": 206,
+          "duration": 761.45,
+          "survived": false,
+          "food": 37,
+          "food_per_minute": 2.915490183203099,
+          "health": 0.0,
+          "damage": 173.27499999999122,
+          "distance": 75948.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.584735778873897,
+          "randomize": false
+        },
+        {
+          "attempt": 1,
+          "seed": 204,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 77,
+          "food_per_minute": 3.85,
+          "health": 98.67000000000014,
+          "damage": 255.63000000009737,
+          "distance": 118812.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.468872549019608,
+          "randomize": false
+        },
+        {
+          "attempt": 1,
+          "seed": 205,
+          "duration": 1087.0,
+          "survived": false,
+          "food": 65,
+          "food_per_minute": 3.5878564857405704,
+          "health": 0.0,
+          "damage": 254.73000000007494,
+          "distance": 108006.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.498295362303155,
+          "randomize": false
+        },
+        {
+          "attempt": 1,
+          "seed": 207,
+          "duration": 1199.69,
+          "survived": false,
+          "food": 63,
+          "food_per_minute": 3.1508139602730703,
+          "health": 0.0,
+          "damage": 251.47000000008825,
+          "distance": 121038.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.380600282523964,
+          "randomize": false
+        },
+        {
+          "attempt": 1,
+          "seed": 301,
+          "duration": 1119.1000000000001,
+          "survived": false,
+          "food": 66,
+          "food_per_minute": 3.5385577696363146,
+          "health": 0.0,
+          "damage": 251.45000000007195,
+          "distance": 112085.99999999999,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.478094266926679,
+          "randomize": true
+        },
+        {
+          "attempt": 1,
+          "seed": 300,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 95,
+          "food_per_minute": 4.75,
+          "health": 99.78000000000003,
+          "damage": 263.2000000001138,
+          "distance": 118794.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.50485294117647,
+          "randomize": true
+        },
+        {
+          "attempt": 1,
+          "seed": 303,
+          "duration": 537.38,
+          "survived": false,
+          "food": 38,
+          "food_per_minute": 4.242807696602032,
+          "health": 0.0,
+          "damage": 112.75999999998922,
+          "distance": 53820.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.496688727223368,
+          "randomize": true
+        },
+        {
+          "attempt": 1,
+          "seed": 302,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 90,
+          "food_per_minute": 4.5,
+          "health": 93.68000000000069,
+          "damage": 257.90000000010235,
+          "distance": 118722.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.461813725490197,
+          "randomize": true
+        },
+        {
+          "attempt": 1,
+          "seed": 307,
+          "duration": 963.29,
+          "survived": false,
+          "food": 72,
+          "food_per_minute": 4.484630796541021,
+          "health": 0.0,
+          "damage": 216.33500000002383,
+          "distance": 95598.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.431904630759902,
+          "randomize": true
+        },
+        {
+          "attempt": 1,
+          "seed": 304,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 96,
+          "food_per_minute": 4.8,
+          "health": 98.23000000000019,
+          "damage": 301.9900000001261,
+          "distance": 119406.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.535049019607843,
+          "randomize": true
+        },
+        {
+          "attempt": 1,
+          "seed": 305,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 100,
+          "food_per_minute": 5.0,
+          "health": 96.11000000000043,
+          "damage": 252.65000000009073,
+          "distance": 118260.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.489803921568628,
+          "randomize": true
+        },
+        {
+          "attempt": 1,
+          "seed": 306,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 87,
+          "food_per_minute": 4.35,
+          "health": 92.77000000000079,
+          "damage": 263.90000000009104,
+          "distance": 118386.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.485392156862744,
+          "randomize": true
+        },
+        {
+          "attempt": 1,
+          "seed": 309,
+          "duration": 1054.84,
+          "survived": false,
+          "food": 76,
+          "food_per_minute": 4.322930491828145,
+          "health": 0.0,
+          "damage": 268.50000000008663,
+          "distance": 103740.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.548878335604844,
+          "randomize": true
+        },
+        {
+          "attempt": 1,
+          "seed": 308,
+          "duration": 1200.0,
+          "survived": true,
+          "food": 96,
+          "food_per_minute": 4.8,
+          "health": 2.4200000000082498,
+          "damage": 294.16000000013884,
+          "distance": 120156.0,
+          "blocked_pct": 0.0,
+          "firing_hz": 12.467794117647058,
+          "randomize": true
+        }
+      ],
+      "baseline": {
+        "neurons": 15,
+        "synapses": 0,
+        "seed": 42,
+        "duration": 116.67,
+        "survived": false
+      },
+      "constraints": {
+        "world_unchanged": true,
+        "compute_unchanged": true,
+        "default_receptors_and_motors_unchanged": true,
+        "only_direct_positive_and_negative_synapses": true,
+        "source_project_sha256": "15dc500fff5a1f5a4cf9910a63e220216d28a1af58335c468b6f2dc933fbf012"
+      },
+      "trial_duration_seconds": 1200,
+      "date": "2026-10-21",
+      "notes": "Built from the 15 default receptors and motors, without pre-existing interneurons or synapses. Selection seeds: 42, 44, 45. Independent evaluation contains both fixed-scene and randomized-scene trials. This circuit does not guarantee survival on every seed.",
+      "final_file_replay": {
+        "attempt": 1,
+        "seed": 42,
+        "duration": 1200.0,
+        "survived": true,
+        "food": 67,
+        "food_per_minute": 3.35,
+        "health": 91.8400000000009,
+        "damage": 256.64000000009946,
+        "distance": 119610.0,
+        "blocked_pct": 0.0,
+        "firing_hz": 12.48735294117647
+      }
+    }
+  }
+}

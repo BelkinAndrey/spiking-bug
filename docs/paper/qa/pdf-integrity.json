@@ -1,0 +1,14 @@
+{
+  "en": {
+    "pages": 15,
+    "bytes": 1891982,
+    "required_numbers_present": true,
+    "no_unresolved_references": true
+  },
+  "ru": {
+    "pages": 16,
+    "bytes": 1953682,
+    "required_numbers_present": true,
+    "no_unresolved_references": true
+  }
+}

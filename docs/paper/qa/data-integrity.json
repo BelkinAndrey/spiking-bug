@@ -1,0 +1,22 @@
+{
+  "raw_episode_count": 480,
+  "horizon": 1200,
+  "distinct_conditions": 8,
+  "seed_count": 60,
+  "input_hashes_verified": true,
+  "world_and_bindings_identical": true,
+  "M_ablation_identical_all_recorded_metrics": true,
+  "flattening_identical": true,
+  "bilingual_structure": {
+    "en": {
+      "citations": 15,
+      "figures": 8,
+      "equations": 4
+    },
+    "ru": {
+      "citations": 15,
+      "figures": 8,
+      "equations": 4
+    }
+  }
+}

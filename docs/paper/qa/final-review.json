@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-21",
+  "pages_reviewed": {
+    "ru": 16,
+    "en": 15
+  },
+  "review": "All page montages inspected; detailed inspection of result tables, equations, plots and captions. No overfull boxes, missing glyphs, unresolved references, cropped figures or overlapping manuscript elements detected. Original UI screenshots preserve their existing dense node labels.",
+  "editor_compile": "success",
+  "live_application_modified": false,
+  "temporary_capture_services_stopped": [
+    8011,
+    5183,
+    5184
+  ]
+}

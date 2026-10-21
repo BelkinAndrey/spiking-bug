@@ -1,0 +1,22 @@
+\usepackage[a4paper,margin=24mm,headheight=15pt]{geometry}
+\usepackage{fontspec}
+\setmainfont{LiberationSerif-Regular.ttf}[Path=fonts/,BoldFont=LiberationSerif-Bold.ttf,ItalicFont=LiberationSerif-Italic.ttf,BoldItalicFont=LiberationSerif-BoldItalic.ttf]
+\setsansfont{LiberationSans-Regular.ttf}[Path=fonts/,BoldFont=LiberationSans-Bold.ttf,ItalicFont=LiberationSans-Italic.ttf,BoldItalicFont=LiberationSans-BoldItalic.ttf]
+\setmonofont{DejaVuSansMono.ttf}[Path=fonts/,Scale=0.83,BoldFont=DejaVuSansMono-Bold.ttf,ItalicFont=DejaVuSansMono-Oblique.ttf,BoldItalicFont=DejaVuSansMono-BoldOblique.ttf]
+\usepackage{polyglossia}
+\usepackage{amsmath,amssymb,booktabs,longtable,array,graphicx,xcolor}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{microtype}
+\usepackage{placeins}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=*}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[unicode,colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\usepackage{xurl}
+\usepackage{fancyhdr}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\small\sffamily Spiking Bug}\fancyhead[R]{\small\sffamily Belkin · 2026}\fancyfoot[C]{\thepage}
+\setlength{\parindent}{1.25em}\setlength{\parskip}{2pt}\setlength{\emergencystretch}{2em}
+\linespread{1.06}
+\graphicspath{{figures/}}
+\newcommand{\code}[1]{\nolinkurl{#1}}
+\newcommand{\CI}[3]{#1\,[#2,\,#3]}

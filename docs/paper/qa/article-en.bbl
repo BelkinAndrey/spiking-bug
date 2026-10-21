@@ -1,0 +1,113 @@
+\begin{thebibliography}{15}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Arendt et~al.(2016)Arendt, Tosches, and Marlow]{arendt2016}
+Detlev Arendt, Maria~Antonietta Tosches, and Heather Marlow.
+\newblock From nerve net to nerve ring, nerve cord and brain: evolution of the
+  nervous system.
+\newblock \emph{Nature Reviews Neuroscience}, 17:\penalty0 61--72, 2016.
+\newblock \doi{10.1038/nrn.2015.15}.
+
+\bibitem[Attwell and Laughlin(2001)]{attwell2001}
+David Attwell and Simon~B. Laughlin.
+\newblock An energy budget for signaling in the grey matter of the brain.
+\newblock \emph{Journal of Cerebral Blood Flow \& Metabolism}, 21\penalty0
+  (10):\penalty0 1133--1145, 2001.
+\newblock \doi{10.1097/00004647-200110000-00001}.
+
+\bibitem[Braitenberg(1984)]{braitenberg1984}
+Valentino Braitenberg.
+\newblock \emph{Vehicles: Experiments in Synthetic Psychology}.
+\newblock MIT Press, 1984.
+\newblock URL \url{https://mitpress.mit.edu/9780262521123/vehicles/}.
+
+\bibitem[Burkhardt and Jékely(2021)]{burkhardt2021}
+Pawel Burkhardt and Gáspár Jékely.
+\newblock Evolution of synapses and neurotransmitter systems: The
+  divide-and-conquer model for early neural cell-type evolution.
+\newblock \emph{Current Opinion in Neurobiology}, 71:\penalty0 127--138, 2021.
+\newblock \doi{10.1016/j.conb.2021.11.002}.
+
+\bibitem[Clune et~al.(2013)Clune, Mouret, and Lipson]{clune2013}
+Jeff Clune, Jean-Baptiste Mouret, and Hod Lipson.
+\newblock The evolutionary origins of modularity.
+\newblock \emph{Proceedings of the Royal Society B}, 280\penalty0
+  (1755):\penalty0 20122863, 2013.
+\newblock \doi{10.1098/rspb.2012.2863}.
+
+\bibitem[Floreano et~al.(2008)Floreano, Dürr, and Mattiussi]{floreano2008}
+Dario Floreano, Peter Dürr, and Claudio Mattiussi.
+\newblock Neuroevolution: from architectures to learning.
+\newblock \emph{Evolutionary Intelligence}, 1:\penalty0 47--62, 2008.
+\newblock \doi{10.1007/s12065-007-0002-4}.
+
+\bibitem[Gerstner et~al.(2014)Gerstner, Kistler, Naud, and
+  Paninski]{gerstner2014}
+Wulfram Gerstner, Werner~M. Kistler, Richard Naud, and Liam Paninski.
+\newblock \emph{Neuronal Dynamics: From Single Neurons to Networks and Models
+  of Cognition}.
+\newblock Cambridge University Press, 2014.
+\newblock \doi{10.1017/CBO9781107447615}.
+
+\bibitem[Jékely(2021)]{jekely2021}
+Gáspár Jékely.
+\newblock The chemical brain hypothesis for the origin of nervous systems.
+\newblock \emph{Philosophical Transactions of the Royal Society B},
+  376\penalty0 (1821):\penalty0 20190761, 2021.
+\newblock \doi{10.1098/rstb.2019.0761}.
+
+\bibitem[Kashtan and Alon(2005)]{kashtan2005}
+Nadav Kashtan and Uri Alon.
+\newblock Spontaneous evolution of modularity and network motifs.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 102\penalty0
+  (39):\penalty0 13773--13778, 2005.
+\newblock \doi{10.1073/pnas.0503610102}.
+
+\bibitem[Marder(2012)]{marder2012}
+Eve Marder.
+\newblock Neuromodulation of neuronal circuits: Back to the future.
+\newblock \emph{Neuron}, 76\penalty0 (1):\penalty0 1--11, 2012.
+\newblock \doi{10.1016/j.neuron.2012.09.010}.
+
+\bibitem[Marder and Bucher(2001)]{marder2001}
+Eve Marder and Dirk Bucher.
+\newblock Central pattern generators and the control of rhythmic movements.
+\newblock \emph{Current Biology}, 11\penalty0 (23):\penalty0 R986--R996, 2001.
+\newblock \doi{10.1016/S0960-9822(01)00581-4}.
+
+\bibitem[Martín-Durán et~al.(2018)Martín-Durán, Pang, Børve, Semmler~Lê,
+  Furu, Cannon, Jondelius, and Hejnol]{martin2018}
+José~M. Martín-Durán, Kevin Pang, Aina Børve, Henrike Semmler~Lê, Anlaug
+  Furu, Johanna~Taylor Cannon, Ulf Jondelius, and Andreas Hejnol.
+\newblock Convergent evolution of bilaterian nerve cords.
+\newblock \emph{Nature}, 553:\penalty0 45--50, 2018.
+\newblock \doi{10.1038/nature25030}.
+
+\bibitem[Royston and Parmar(2013)]{royston2013}
+Patrick Royston and Mahesh K.~B. Parmar.
+\newblock Restricted mean survival time: an alternative to the hazard ratio for
+  the design and analysis of randomized trials with a time-to-event outcome.
+\newblock \emph{BMC Medical Research Methodology}, 13:\penalty0 152, 2013.
+\newblock \doi{10.1186/1471-2288-13-152}.
+
+\bibitem[Ryan and Grant(2009)]{ryan2009}
+Tomás~J. Ryan and Seth G.~N. Grant.
+\newblock The origin and evolution of synapses.
+\newblock \emph{Nature Reviews Neuroscience}, 10:\penalty0 701--712, 2009.
+\newblock \doi{10.1038/nrn2717}.
+
+\bibitem[Soltoggio et~al.(2008)Soltoggio, Bullinaria, Mattiussi, Dürr, and
+  Floreano]{soltoggio2008}
+Andrea Soltoggio, John~A. Bullinaria, Claudio Mattiussi, Peter Dürr, and Dario
+  Floreano.
+\newblock Evolutionary advantages of neuromodulated plasticity in dynamic,
+  reward-based scenarios.
+\newblock In \emph{Artificial Life XI}, pages 569--576. MIT Press, 2008.
+\newblock URL
+  \url{https://repository.lboro.ac.uk/articles/conference_contribution/9403988}.
+
+\end{thebibliography}

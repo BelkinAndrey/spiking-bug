@@ -76,6 +76,10 @@ def create_app(runtime):
     def save_evolution():
         return jsonify(evolution.pin(request.get_json()["id"]))
 
+    @app.post("/api/evolution/clear")
+    def clear_evolution_archive():
+        return jsonify(evolution.clear_archive())
+
     @app.get("/api/devices")
     def compute_devices():
         return jsonify(runtime.compute_devices())

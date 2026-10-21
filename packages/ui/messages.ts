@@ -2,6 +2,15 @@ import { evolutionMessages } from "./evolution-messages";
 // Russian source messages are stable keys; project data is never translated.
 export const messages = {
   ...evolutionMessages,
+  "Новый документ": "New document",
+  Импорт: "Import",
+  Экспорт: "Export",
+  "Разложить граф": "Arrange graph",
+  "Раскладываем…": "Arranging…",
+  "Рецепторы слева, моторы справа; остальные нейроны размещаются по связям. Можно отменить через Ctrl / ⌘ + Z.":
+    "Receptors on the left, motors on the right; other neurons are arranged by connectivity. Undo with Ctrl / ⌘ + Z.",
+  "Граф разложен: рецепторы слева, моторы справа":
+    "Graph arranged: receptors on the left, motors on the right",
   Испытание: "Trial",
   "Испытание нейронной сети": "Neural network trial",
   Закрыть: "Close",
@@ -414,6 +423,9 @@ export const messages = {
   "Дальность лидара": "Lidar range",
   "Рост голода / с": "Hunger increase / s",
   "Усталость / спайк": "Fatigue / spike",
+  "Доп. усталость / нейрон / с": "Extra fatigue / neuron / s",
+  "За секунду симуляции добавляется коэффициент × число всех нейронов, включая рецепторные и моторные. Например, 0.001 × 100 = 10% усталости/с до вычета восстановления. Действует и в покое; 0 отключает добавку.":
+    "Each simulated second adds coefficient × total neuron count, including sensory and motor neurons. For example, 0.001 × 100 = 10% fatigue/s before recovery. Applies even at rest; 0 disables the extra cost.",
   "Восстановление / с": "Recovery / s",
   "Применить параметры": "Apply parameters",
   "Сенсорные токи · 0…1": "Sensor currents · 0…1",

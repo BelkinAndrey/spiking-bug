@@ -35,7 +35,6 @@ def main():
             duration=2,
             attempts=2,
             validation_attempts=1,
-            fitness={"neuron_penalty": 0.15},
         )
     )
     base = Runtime().project()
@@ -69,7 +68,7 @@ def main():
         == baseline
     )
     assert {n["id"] for n in genome.nodespace(genes)} == {"z" * 80, "grp"}
-    assert baseline["fitness"]["value"] == baseline["fitness"]["lifetime"] - 0.15 * 3
+    assert baseline["fitness"]["value"] == baseline["fitness"]["lifetime"]
     for changes in (
         {"preset": "direct"},
         {"mod_inh": False},

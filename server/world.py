@@ -227,7 +227,7 @@ class World:
             a, math.cos(a["heading"]) * distance, math.sin(a["heading"]) * distance, self.radius
         )
 
-    def step(self, motors, manual=None):
+    def step(self, motors, manual=None, *, neuron_count=0):
         c = self.config
         a = self.agent
         self.elapsed += DT
@@ -241,6 +241,7 @@ class World:
                 1.0,
                 a["fatigue"]
                 + sum(motors.values()) * c["fatigue_gain"]
+                + c["neuron_fatigue_rate"] * neuron_count * DT
                 - c["fatigue_decay"] * DT,
             ),
         )

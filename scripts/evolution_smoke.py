@@ -33,7 +33,6 @@ def main():
                 validation_attempts=2,
                 duration=5,
                 seed=42,
-                fitness={"neuron_penalty": 0.01},
             )
         )
         path = args.output / preset

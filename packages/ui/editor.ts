@@ -212,6 +212,15 @@ export class EditorView {
     this.undo.push(previous);
     if (this.undo.length > 20) this.undo.shift();
   }
+  async arrange() {
+    const previous = structuredClone(this.api.project.topology);
+    await this.api.command("layout");
+    this.undo.push(previous);
+    if (this.undo.length > 20) this.undo.shift();
+    this.rebuild();
+    this.fit();
+    toast(t("Граф разложен: рецепторы слева, моторы справа"));
+  }
   restore() {
     const topology = this.undo.pop();
     if (topology)

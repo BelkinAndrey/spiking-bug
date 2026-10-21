@@ -261,6 +261,51 @@ p.help {
   gap: 7px;
   margin-left: auto;
 }
+.heading-actions .icon-action,
+.topright .icon-action {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  padding: 9px;
+}
+.icon-action svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+.icon-action[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: #72834b;
+  background: #35402a;
+}
+.icon-action[aria-busy="true"] svg {
+  animation: action-spin 1s linear infinite;
+}
+@keyframes action-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .icon-action[aria-busy="true"] svg { animation: none; }
+}
+.action-tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 16px));
+  padding: 9px 12px;
+  border: 1px solid #52665b;
+  border-radius: 7px;
+  background: #24322c;
+  color: #eef2e6;
+  box-shadow: 0 5px 20px #0006;
+  font-size: 12px;
+  line-height: 1.5;
+  pointer-events: none;
+}
+.action-tooltip[hidden] { display: none; }
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 302px;

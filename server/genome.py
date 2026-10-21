@@ -4,7 +4,7 @@ from __future__ import annotations
 import copy
 import math
 import random
-from . import schema, generators, genome_import
+from . import schema, generators, genome_import, genome_growth
 from .development import coordinate, unique_coordinates, rgb, seed, expand_synapse, edge_count
 
 VERSION = 2
@@ -29,7 +29,7 @@ def settings(data):
         raise ValueError("settings: ожидается объект")
     ranges = {
         "population": (12, 2, 128, True),
-        "generations": (20, 1, 10000, True),
+        "generations": (20, 0, 10000, True),
         "elite": (2, 1, 127, True),
         "tournament": (3, 1, 128, True),
         "attempts": (3, 1, 100, True),
@@ -44,13 +44,13 @@ def settings(data):
         "max_synapses": (10000, 0, schema.MAX_SYNAPSES, True),
         "max_pair_checks": (2000000, 1, 10000000, True),
         "memory_mb": (256, 16, 4096, True),
-        "wall_seconds": (3600, 1, 86400, True),
-        "workers": (1, 1, 1, True),
+        "workers": (1, 1, 64, True),
         "archive_size": (12, 1, 100, True),
         "add_rate": (0.35, 0, 1, False),
         "delete_rate": (0.15, 0, 1, False),
         "change_rate": (0.7, 0, 1, False),
         "scale": (0.2, 0.001, 5, False),
+        "fill_bias": (0.9, 0, 1, False),
     }
     out = {k: schema.number(data.get(k, v[0]), k, *v[1:]) for k, v in ranges.items()}
     if out["elite"] >= out["population"]:
@@ -79,14 +79,10 @@ def settings(data):
         raise ValueError("Неизвестный режим запуска")
     if not kinds(out):
         raise ValueError("Выберите хотя бы один тип связей")
-    weights = data.get("fitness", {})
-    if not isinstance(weights, dict):
-        raise ValueError("fitness: ожидается объект")
-    out["fitness"] = {
-        "neuron_penalty": schema.number(
-            weights.get("neuron_penalty", 0.01), "neuron_penalty", 0, 10000
-        )
-    }
+    if "neuron_fatigue_rate" in data:
+        out["neuron_fatigue_rate"] = schema.world_config(
+            {"neuron_fatigue_rate": data["neuron_fatigue_rate"]}
+        )["neuron_fatigue_rate"]
     return out
 
 
@@ -261,13 +257,17 @@ def decode(genome, project, options, stop=None):
         + [c["recipe"].get("delay", 2) for c in g["C"] if "recipe" in c]
     )
     if (
-        total * (4096 + (maximum_delay + 1) * 16) * (options["population"] + 4)
+        total
+        * (4096 + (maximum_delay + 1) * 16)
+        * (options["population"] + 4 + 2 * (options["workers"] - 1))
         > options["memory_mb"] * 1048576
     ):
         raise ValueError("Бюджет памяти популяции")
     memory_edges = int(
         (
-            options["memory_mb"] * 1048576 / (options["population"] + 4)
+            options["memory_mb"]
+            * 1048576
+            / (options["population"] + 4 + 2 * (options["workers"] - 1))
             - total * (4096 + (maximum_delay + 1) * 16)
         )
         / 2048
@@ -432,16 +432,19 @@ def decode(genome, project, options, stop=None):
         net[key] = genome_import.ordered(net[key], order)
     net = schema.topology(net)
     max_delay = max((s["delay"] for s in net["synapses"]), default=1)
-    # Conservative kernel + Python document estimate; CPU, one worker only.
+    # Conservative document/kernel estimate, including concurrent worker copies.
     estimate = len(nodes) * (4096 + (max_delay + 1) * 16) + edge_count(net) * 2048
-    if estimate * (options["population"] + 4) > options["memory_mb"] * 1048576:
+    if (
+        estimate * (options["population"] + 4 + 2 * (options["workers"] - 1))
+        > options["memory_mb"] * 1048576
+    ):
         raise ValueError("Бюджет памяти популяции")
     return net
 
 
-def new_rule(identity, space, rng, options, anchor=None):
+def new_rule(identity, space, rng, options, anchor=None, target=None):
     a = anchor or rng.choice(space)
-    b = rng.choice(space)
+    b = target or rng.choice(space)
     kind = rng.choice(kinds(options))
     sign = 1 if options["direct_exc"] else -1
     if options["direct_exc"] and options["direct_inh"]:
@@ -486,21 +489,46 @@ def initial(project, options):
         bindings=copy.deepcopy(project["bindings"]),
     )
     rng = random.Random(seed("initial", options["seed"]))
+    guided = options.get("fill_bias", 0) > 0 and rng.random() < options["fill_bias"]
+    anchors = []
     for i in range(min(4, max(0, options["max_neurons"] - len(fixed)))):
         nid = f"ev_n{i}"
         while nid in fixed:
             nid += "_"
-        g["A"].append(schema.neuron(dict(id=nid, rgb=coordinate(nid), bias=rng.uniform(0, 0.2))))
+        color = genome_growth.vacant_coordinate(nodespace(g), rng) if guided else coordinate(nid)
+        g["A"].append(schema.neuron(dict(id=nid, rgb=color, bias=rng.uniform(0, 0.2))))
+        anchors.append(nid)
+    if guided:
+        sequence = 0
+
+        def identity(block):
+            nonlocal sequence
+            sequence += 1
+            return f"ev_fill_{block}_{sequence}"
+
+        g = normalize(g, project, options)
+        return genome_growth.fill_connections(
+            g,
+            project,
+            options,
+            rng,
+            identity,
+            anchors,
+            ["B"] * 8,
+            max_additions=min(8, options["max_rules"]),
+        )
     for i in range(min(8, options["max_rules"])):
         g["B"].append(new_rule(f"ev_b{i}", nodespace(g), rng, options))
     return normalize(g, project, options)
 
 
-def mutate(parent, project, options, mutation_seed):
+def mutate(parent, project, options, mutation_seed, stop=None):
     g = copy.deepcopy(parent)
     rng = random.Random(seed("mutation", mutation_seed))
     scale = options["scale"]
     fixed = set(g["frozen"])
+    guided = options.get("fill_bias", 0) > 0 and rng.random() < options["fill_bias"]
+    anchors, requests = [], []
 
     def identity(block):
         return f"{block.lower()}_{rng.getrandbits(64):016x}"
@@ -511,7 +539,16 @@ def mutate(parent, project, options, mutation_seed):
     def neuron_change(n):
         key = rng.choice(list(PARAMETERS) + ["rgb", "polarity", "reset_mode"])
         if key == "rgb":
-            n[key] = [perturb(v, 0, 1) for v in n[key]]
+            if guided:
+                group = next((c for c in g["C"] if n["id"] in c.get("members", [])), None)
+                space = (
+                    [a for a in g["A"] if a["id"] in group["members"]] if group else nodespace(g)
+                )
+                n[key] = genome_growth.vacant_coordinate(
+                    [a for a in space if a["id"] != n["id"]], rng
+                )
+            else:
+                n[key] = [perturb(v, 0, 1) for v in n[key]]
         elif key == "polarity":
             n[key] = rng.choice(["mixed", "exc", "inh"])
         elif key == "reset_mode":
@@ -536,14 +573,24 @@ def mutate(parent, project, options, mutation_seed):
         if rng.random() < options["add_rate"]:
             nid = identity(block)
             if block == "A":
-                n = schema.neuron(dict(id=nid, rgb=coordinate(nid), bias=rng.uniform(0, 0.2)))
+                color = (
+                    genome_growth.vacant_coordinate(nodespace(g), rng)
+                    if guided
+                    else coordinate(nid)
+                )
+                n = schema.neuron(dict(id=nid, rgb=color, bias=rng.uniform(0, 0.2)))
                 g["A"].append(n)
-                g["B"].append(new_rule(identity("B"), nodespace(g), rng, options, n))
+                if guided:
+                    anchors.append(nid)
+                else:
+                    g["B"].append(new_rule(identity("B"), nodespace(g), rng, options, n))
             elif block == "C":
                 c = dict(
                     id=nid,
-                    rgb=coordinate(nid),
-                    connector_rgb=coordinate(nid + ":connector"),
+                    rgb=genome_growth.vacant_coordinate(g["C"], rng) if guided else coordinate(nid),
+                    connector_rgb=genome_growth.vacant_coordinate(nodespace(g), rng)
+                    if guided
+                    else coordinate(nid + ":connector"),
                     recipe=dict(
                         count=rng.randint(2, 8),
                         radius=100,
@@ -562,26 +609,34 @@ def mutate(parent, project, options, mutation_seed):
                     ),
                 )
                 g["C"].append(c)
-                g["B"].append(
-                    new_rule(
-                        identity("B"),
-                        nodespace(g),
-                        rng,
-                        options,
-                        {"id": nid, "rgb": c["connector_rgb"]},
+                if guided:
+                    anchors.append(nid)
+                else:
+                    g["B"].append(
+                        new_rule(
+                            identity("B"),
+                            nodespace(g),
+                            rng,
+                            options,
+                            {"id": nid, "rgb": c["connector_rgb"]},
+                        )
                     )
-                )
             else:
                 space = nodespace(g) if block == "B" else g["C"]
                 if space:
-                    g[block].append(new_rule(nid, space, rng, options))
+                    if guided:
+                        requests.append(block)
+                    else:
+                        g[block].append(new_rule(nid, space, rng, options))
         mutable = [n for n in g[block] if block != "A" or n["id"] not in fixed]
         if mutable and rng.random() < options["change_rate"]:
             n = rng.choice(mutable)
             if block == "A":
                 neuron_change(n)
             elif block == "C" and "members" in n:
-                genome_import.mutate_group(n, g, rng, options, identity, perturb, neuron_change)
+                genome_import.mutate_group(
+                    n, g, rng, options, identity, perturb, neuron_change, guided
+                )
             elif block == "C":
                 p = n["recipe"]
                 key = rng.choice(
@@ -602,7 +657,13 @@ def mutate(parent, project, options, mutation_seed):
                     ]
                 )
                 if key in ("rgb", "connector_rgb"):
-                    n[key] = [perturb(v, 0, 1) for v in n[key]]
+                    if guided:
+                        space = g["C"] if key == "rgb" else nodespace(g)
+                        n[key] = genome_growth.vacant_coordinate(
+                            [a for a in space if a["id"] != n["id"]], rng
+                        )
+                    else:
+                        n[key] = [perturb(v, 0, 1) for v in n[key]]
                 elif key == "neuron":
                     nn = schema.neuron(
                         {**p.get("neuron", {}), "id": "temporary", "rgb": coordinate("temporary")}
@@ -683,7 +744,12 @@ def mutate(parent, project, options, mutation_seed):
                 if n["kind"] == "direct" and not (options["direct_exc"] and options["direct_inh"]):
                     n["weight"] = abs(n["weight"]) * (1 if options["direct_exc"] else -1)
     genome_import.repair_polarities(g)
-    return normalize(prune(g), project, options)
+    g = normalize(prune(g), project, options)
+    if guided and (options["add_rate"] > 0 or options["change_rate"] > 0):
+        g = genome_growth.fill_connections(
+            g, project, options, rng, identity, anchors, requests, stop
+        )
+    return g
 
 
 def size(net):

@@ -6,7 +6,6 @@ type Fitness = {
   value: number;
   lifetime: number;
   lifetime_std: number;
-  neuron_penalty: number;
 };
 type Size = { neurons: number; synapses: number; ganglia: number };
 type Evaluation = {
@@ -70,13 +69,13 @@ const controls: [string, Message, number, number, number, number][] = [
   ["delete_rate", "Вероятность удаления / блок", 0.15, 0.01, 0, 1],
   ["change_rate", "Вероятность изменения / блок", 0.7, 0.01, 0, 1],
   ["scale", "Масштаб мутаций", 0.2, 0.01, 0.001, 5],
+  ["fill_bias", "Стремление заполнить пустоты", 0.9, 0.05, 0, 1],
   ["max_neurons", "Лимит нейронов", 256, 1, 1, 100000],
   ["max_ganglia", "Лимит ганглиев", 8, 1, 0, 128],
   ["max_rules", "Лимит правил B + D", 64, 1, 1, 4096],
   ["max_synapses", "Лимит развёрнутых синапсов", 10000, 1, 0, 500000],
   ["max_pair_checks", "Бюджет проверки пар", 2000000, 1, 1, 10000000],
   ["memory_mb", "Память популяции, МиБ", 256, 1, 16, 4096],
-  ["wall_seconds", "Лимит времени поиска, с", 3600, 1, 1, 86400],
   ["archive_size", "Размер автоматического архива", 12, 1, 1, 100],
 ];
 const metrics: [string, Message][] = [
@@ -103,19 +102,22 @@ export function openEvolution(api: Connection) {
     <form id="evolution-form"><fieldset disabled><div class="trial-settings">
       ${select("preset", t("Доступные инструменты"), "ganglia", { direct: t("1 · Прямые связи"), modulation: t("2 · Прямые + модуляция"), ganglia: t("3 · Прямые + модуляция + ганглии") })}
       ${select("mode", t("Начало поиска"), "fresh", { fresh: t("Независимый запуск с нуля"), current: t("Начать от текущей сети"), continue: t("Продолжить из генома открытого экземпляра") })}
-      ${field("population", t("Популяция"), 12, 1, 2, 128)}${field("generations", t("Поколения"), 20, 1, 1, 10000)}
+      ${field("population", t("Популяция"), 12, 1, 2, 128)}${field("generations", t("Поколения (0 — без лимита)"), 20, 1, 0, 10000)}
       ${field("attempts", t("Поисковые эпизоды"), 3, 1, 1, 100)}${field("duration", t("Длительность попытки, с"), 30, 1, 1, 3600)}
-      ${field("seed", t("Seed эволюции"), 42, 1, 0, 2147483647)}${field("neuron_penalty", t("Штраф за нейрон, с"), 0.01, 0.001, 0, 10000)}
+      ${field("workers", t("Количество процессов"), 1, 1, 1, 64)}
+      ${field("seed", t("Seed эволюции"), 42, 1, 0, 2147483647)}${field("neuron_fatigue_rate", t("Доп. усталость / нейрон / с"), api.project.world.config.neuron_fatigue_rate ?? 0, 0.0001, 0, 1)}
     </div><div class="evolution-tools">${checkbox("direct_exc", "Возбуждающие прямые связи")}${checkbox("direct_inh", "Тормозящие прямые связи")}${checkbox("mod_exc", "Модуляция возбуждения · E")}${checkbox("mod_inh", "Модуляция торможения · I")}${checkbox("randomize", "Заново размещать пищу и угрозы в каждой попытке")}</div>
-    <p class="help">${t("Fitness = среднее время жизни − штраф × число нейронов. Учитываются все нейроны, включая внутренние; коннекторы не учитываются. Остальные метрики не влияют на отбор.")}</p>
+    <p class="help">${t("Fitness = среднее время жизни. Число нейронов влияет на усталость, а не вычитается из оценки. Коэффициент общий с настройками среды и сохраняется при запуске эволюции.")}</p>
+    <p class="help">${t("За секунду симуляции добавляется коэффициент × число всех нейронов, включая рецепторные и моторные. Например, 0.001 × 100 = 10% усталости/с до вычета восстановления. Действует и в покое; 0 отключает добавку.")}</p>
     <p class="help">${t("Старт от текущей сети сохраняет её нейроны, ганглии и связи. Каждая исходная связь занимает одно правило B; при необходимости увеличьте лимиты. Несовместимые инструменты или лимиты не позволят запустить поиск.")}</p>
     <details><summary>${t("Расширенные настройки")}</summary><div class="trial-settings">${controls.map(([key, label, value, step, min, max]) => field(key, t(label), value, step, min, max)).join("")}</div>
-    <p class="help">${t("Один отдельный CPU-процесс. Проверочные seed не участвуют в отборе. Продолжение из экземпляра — новый поиск от его генома, а не восстановление всей популяции.")}</p></details>
+    <p class="help">${t("Заполнение пустот: 0 — обычные случайные мутации, 1 — всегда предпочитать свободные области RGB и подключение незадействованных нейронов. Сенсоры и моторы сохраняют свои координаты.")}</p>
+    <p class="help">${t("Количество процессов задаёт число одновременно выполняемых испытаний на CPU. 1 — последовательно. При нескольких процессах дополнительно работает координатор. Проверочные seed не участвуют в отборе. Продолжение из экземпляра начинает новый поиск от его генома.")}</p></details>
     <button class="primary" id="evolution-start">${t("Запустить эволюцию")}</button></fieldset></form>
     <p id="evolution-error" class="trial-error" role="alert" hidden></p>
     <section id="evolution-progress" hidden><div class="trial-heading"><strong id="evolution-status" role="status"></strong><button id="evolution-cancel">${t("Остановить")}</button></div><progress id="evolution-bar" max="1" value="0" aria-label="${t("Прогресс эволюции")}"></progress><p id="evolution-timing" class="help"></p><p id="evolution-seeds" class="help"></p></section>
     <section id="evolution-results" hidden><h3>${t("Fitness по поколениям")}</h3><canvas id="evolution-fitness-chart" role="img" aria-label="${t("Лучшее и медианное fitness")}"></canvas><h3>${t("Размер сети по поколениям")}</h3><canvas id="evolution-size-chart" role="img" aria-label="${t("Нейроны, синапсы и ганглии")}"></canvas><div id="evolution-history" class="trial-table-wrap"></div><div id="evolution-metrics"></div></section>
-    <section><h3>${t("Сохранённые экземпляры")}</h3><p class="help">${t("Лучший экземпляр и последние завершённые кандидаты сохраняются автоматически. Закреплённые экземпляры не вытесняются архивом. Открытие заменит активный документ.")}</p><div id="evolution-artifacts"></div></section>`;
+    <section><div class="trial-heading"><h3>${t("Сохранённые экземпляры")}</h3><button id="evolution-clear" disabled>${t("Очистить архив")}</button></div><p class="help">${t("Лучший экземпляр и последние завершённые кандидаты сохраняются автоматически. Закреплённые экземпляры не вытесняются архивом. Открытие заменит активный документ.")}</p><p class="help">${t("Очистка удаляет все файлы архива, включая закреплённые экземпляры и историю запусков. Доступна после остановки эволюции.")}</p><div id="evolution-artifacts"></div></section>`;
   document.body.append(dialog);
   dialog.showModal();
   const find = <T extends HTMLElement = HTMLElement>(id: string) =>
@@ -137,6 +139,8 @@ export function openEvolution(api: Connection) {
     form.querySelector("fieldset")!.disabled = !ready || pending || active();
     find<HTMLButtonElement>("evolution-cancel").disabled =
       pending || snapshot.job?.status === "cancelling";
+    find<HTMLButtonElement>("evolution-clear").disabled =
+      !ready || pending || active();
     const direct =
       (form.elements.namedItem("preset") as HTMLSelectElement).value ===
       "direct";
@@ -225,7 +229,7 @@ export function openEvolution(api: Connection) {
     if (!result)
       return `<h4>${label}</h4><p class="help">${t("Нет завершённой оценки")}</p>`;
     const f = result.fitness;
-    return `<h4>${label}</h4><p>Fitness <strong>${f.value.toFixed(3)}</strong> = ${f.lifetime.toFixed(3)} − ${f.neuron_penalty.toFixed(3)} · σ ${f.lifetime_std.toFixed(3)} ${t("с")}</p><div class="trial-metrics"><div><span>${t("Выживаемость")}</span><strong>${result.summary.survival_pct.toFixed(1)}%</strong></div>${metrics
+    return `<h4>${label}</h4><p>Fitness <strong>${f.value.toFixed(3)}</strong> · σ ${f.lifetime_std.toFixed(3)} ${t("с")}</p><div class="trial-metrics"><div><span>${t("Выживаемость")}</span><strong>${result.summary.survival_pct.toFixed(1)}%</strong></div>${metrics
       .map(([key, label]) => {
         const m = result.summary.metrics[key];
         return `<div><span>${t(label)}</span><strong>${m.mean.toFixed(2)} <small>± ${m.std.toFixed(2)}</small></strong></div>`;
@@ -239,7 +243,9 @@ export function openEvolution(api: Connection) {
     if (job && settingsId !== job.id) {
       for (const [key, value] of Object.entries({
         ...job.settings,
-        neuron_penalty: job.settings.fitness.neuron_penalty,
+        neuron_fatigue_rate: active()
+          ? (job.settings.neuron_fatigue_rate ?? api.project.world.config.neuron_fatigue_rate ?? 0)
+          : (api.project.world.config.neuron_fatigue_rate ?? 0),
       })) {
         const control = form.elements.namedItem(key) as HTMLInputElement | null;
         if (control) {
@@ -272,19 +278,23 @@ export function openEvolution(api: Connection) {
       find("evolution-status").textContent =
         `${statuses[job.status] ?? job.status} · ${phases[job.phase] ?? job.phase}`;
       find("evolution-cancel").hidden = !active();
-      find<HTMLProgressElement>("evolution-bar").value =
-        job.status === "completed"
-          ? 1
-          : (job.generation +
-              (job.candidate -
-                1 +
-                (job.episode + job.episode_progress) / job.episodes) /
-                job.settings.population) /
-            job.settings.generations;
+      const bar = find<HTMLProgressElement>("evolution-bar");
+      bar.hidden = job.settings.generations === 0 && !active();
+      if (job.settings.generations === 0) bar.removeAttribute("value");
+      else
+        bar.value =
+          job.status === "completed"
+            ? 1
+            : (job.generation +
+                (job.candidate -
+                  1 +
+                  (job.episode + job.episode_progress) / job.episodes) /
+                  job.settings.population) /
+              job.settings.generations;
       find("evolution-timing").textContent = t(
         "Поколение {0}/{1} · экземпляр {2}/{3} · эпизод {4}/{5} · {6} с · {7} оценок/с · отклонено {8}",
         job.generation + 1,
-        job.settings.generations,
+        job.settings.generations || "∞",
         job.candidate,
         job.settings.population,
         job.episode,
@@ -294,10 +304,7 @@ export function openEvolution(api: Connection) {
         job.rejected ?? 0,
       );
       find("evolution-seeds").textContent =
-        `CPU · seed ${job.settings.seed} · ${t("Поиск")}: ${job.settings.search_seed}…${job.settings.search_seed + job.settings.attempts - 1} · ${t("Проверка чемпиона")}: ${job.settings.validation_seed}…${job.settings.validation_seed + job.settings.validation_attempts - 1}` +
-        (job.stop_reason === "time_budget"
-          ? " · " + t("Достигнут лимит времени")
-          : "");
+        `CPU · ${t("Количество процессов")}: ${job.settings.workers ?? 1} · seed ${job.settings.seed} · ${t("Поиск")}: ${job.settings.search_seed}…${job.settings.search_seed + job.settings.attempts - 1} · ${t("Проверка чемпиона")}: ${job.settings.validation_seed}…${job.settings.validation_seed + job.settings.validation_attempts - 1}`;
       if (job.error) error(translateServerMessage(job.error));
       const version = JSON.stringify([
         job.id,
@@ -415,13 +422,12 @@ export function openEvolution(api: Connection) {
       "mod_inh",
     ])
       data[name] = (form.elements.namedItem(name) as HTMLInputElement).checked;
-    data.fitness = { neuron_penalty: data.neuron_penalty };
-    delete data.neuron_penalty;
     void action(async () => {
       snapshot = await request("", {
         settings: data,
         revision: api.project.revision,
       });
+      await api.refresh();
       render();
     });
   };
@@ -432,6 +438,13 @@ export function openEvolution(api: Connection) {
         render();
       }
     });
+  find("evolution-clear").onclick = () => {
+    if (!ready || active()) return;
+    void action(async () => {
+      snapshot = await request("/clear", {});
+      render();
+    });
+  };
   async function poll() {
     if (!dialog.open) return;
     try {

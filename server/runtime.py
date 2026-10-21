@@ -4,7 +4,6 @@ from __future__ import annotations
 import copy
 import json
 import logging
-import os
 from pathlib import Path
 import threading
 import time
@@ -14,6 +13,8 @@ from . import schema
 from .devices import create_network, devices
 from .world import World
 from .generators import ganglion, maze, connect_ganglia
+from .layout import arrange
+from .storage import atomic_json
 
 
 class Conflict(ValueError):
@@ -105,10 +106,7 @@ class Runtime:
     def save(self):
         if not self.path:
             return
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        temp = self.path.with_suffix(".tmp")
-        temp.write_text(json.dumps(self.project(), ensure_ascii=False, allow_nan=False))
-        os.replace(temp, self.path)
+        atomic_json(self.path, self.project())
 
     def _replace_net(self, net, preserve=True):
         new = create_network(net, self.world.config["seed"], self.net.device)
@@ -131,6 +129,27 @@ class Runtime:
         self.session += 1
 
     def command(self, action, data, revision=None):
+        if action == "layout":
+            if not isinstance(data, dict):
+                raise ValueError("Ожидается JSON-объект команды")
+            with self.lock:
+                if revision != self.revision:
+                    raise Conflict(
+                        "Проект изменён в другом окне. Данные обновлены; повторите действие."
+                    )
+                topology = copy.deepcopy(self.net.topology)
+                bindings = self.bindings.copy()
+            # Keep the clock and other clients responsive during graph relaxation.
+            topology = arrange(topology, bindings)
+            with self.lock:
+                if revision != self.revision:
+                    raise Conflict(
+                        "Проект изменён в другом окне. Данные обновлены; повторите действие."
+                    )
+                self.net.topology = topology
+                self.revision += 1
+                self.save()
+                return {"revision": self.revision}
         with self.lock:
             if not isinstance(data, dict):
                 raise ValueError("Ожидается JSON-объект команды")
@@ -384,7 +403,7 @@ class Runtime:
             for k, v in self.bindings.items()
             if k in schema.MOTORS
         }
-        self.world.step(motors, manual=self.active_manual())
+        self.world.step(motors, manual=self.active_manual(), neuron_count=self.net.n)
         self.ticks += 1
         self.window_ticks += 1
         self.window_counts += spikes

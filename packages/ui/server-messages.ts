@@ -1,5 +1,7 @@
 // Translate API diagnostics at the client boundary; the server protocol stays unchanged.
 export const serverMessages: Record<string, string> = {
+  "Один нейрон назначен и рецептором, и мотором: разделите назначения перед раскладкой":
+    "A neuron is assigned as both receptor and motor: separate these bindings before arranging the graph",
   "ID генома: повтор или превышение допустимой длины":
     "Genome ID: duplicate or length limit exceeded",
   "Ганглий не может одновременно содержать members и recipe":

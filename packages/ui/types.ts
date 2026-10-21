@@ -74,6 +74,7 @@ export interface WorldConfig {
   lidar_range: number;
   hunger_rate: number;
   fatigue_gain: number;
+  neuron_fatigue_rate: number;
   fatigue_decay: number;
   seed: number;
 }

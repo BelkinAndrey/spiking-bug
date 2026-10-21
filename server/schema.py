@@ -55,6 +55,7 @@ WORLD = dict(
     lidar_range=180.0,
     hunger_rate=0.012,
     fatigue_gain=0.025,
+    neuron_fatigue_rate=0.0,
     fatigue_decay=0.07,
     seed=42,
 )
@@ -272,6 +273,7 @@ def world_config(data):
         lidar_range=(20, 2000),
         hunger_rate=(0, 1),
         fatigue_gain=(0, 1),
+        neuron_fatigue_rate=(0, 1),
         fatigue_decay=(0, 1),
         seed=(0, 2147483647),
     )

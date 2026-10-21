@@ -98,7 +98,7 @@ def run_attempt(project, options, index, stop, progress):
         spikes = net.step(external)
         commands = {key: bool(spikes[i]) for key, i in motors}
         before = world.agent["x"], world.agent["y"]
-        world.step(commands)
+        world.step(commands, neuron_count=net.n)
         moved = math.hypot(world.agent["x"] - before[0], world.agent["y"] - before[1])
         distance += moved
         spike_count += int(spikes.sum())

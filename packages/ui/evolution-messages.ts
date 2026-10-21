@@ -22,13 +22,15 @@ export const evolutionMessages = {
   "Вероятность удаления / блок": "Deletion probability / block",
   "Вероятность изменения / блок": "Change probability / block",
   "Масштаб мутаций": "Mutation scale",
+  "Стремление заполнить пустоты": "Vacancy filling bias",
+  "Заполнение пустот: 0 — обычные случайные мутации, 1 — всегда предпочитать свободные области RGB и подключение незадействованных нейронов. Сенсоры и моторы сохраняют свои координаты.":
+    "Vacancy filling: 0 uses ordinary random mutations; 1 always favors vacant RGB regions and connecting unused neurons. Sensors and motors keep their coordinates.",
   "Лимит нейронов": "Neuron limit",
   "Лимит ганглиев": "Ganglion limit",
   "Лимит правил B + D": "Rule limit B + D",
   "Лимит развёрнутых синапсов": "Expanded synapse limit",
   "Бюджет проверки пар": "Pair checking budget",
   "Память популяции, МиБ": "Population memory, MiB",
-  "Лимит времени поиска, с": "Search time limit, s",
   "Размер автоматического архива": "Automatic archive size",
   "Поиск архитектуры в копии выбранной среды. Закрытие окна и обновление страницы не останавливают серверную задачу.":
     "Architecture search in a snapshot of the selected world. Closing this window or reloading the page does not stop the server job.",
@@ -42,16 +44,17 @@ export const evolutionMessages = {
     "Continue from the open specimen's genome",
   Популяция: "Population",
   Поколения: "Generations",
+  "Поколения (0 — без лимита)": "Generations (0 — unlimited)",
   "Поисковые эпизоды": "Search episodes",
+  "Количество процессов": "Number of processes",
   "Seed эволюции": "Evolution seed",
-  "Штраф за нейрон, с": "Penalty per neuron, s",
   "Возбуждающие прямые связи": "Excitatory direct synapses",
   "Тормозящие прямые связи": "Inhibitory direct synapses",
-  "Fitness = среднее время жизни − штраф × число нейронов. Учитываются все нейроны, включая внутренние; коннекторы не учитываются. Остальные метрики не влияют на отбор.":
-    "Fitness = mean lifetime − penalty × neuron count. Includes internal neurons; excludes connectors. Other metrics do not influence selection.",
+  "Fitness = среднее время жизни. Число нейронов влияет на усталость, а не вычитается из оценки. Коэффициент общий с настройками среды и сохраняется при запуске эволюции.":
+    "Fitness = mean lifetime. Neuron count affects fatigue without a direct score deduction. The coefficient is shared with the environment settings and saved when evolution starts.",
   "Расширенные настройки": "Advanced settings",
-  "Один отдельный CPU-процесс. Проверочные seed не участвуют в отборе. Продолжение из экземпляра — новый поиск от его генома, а не восстановление всей популяции.":
-    "One isolated CPU process. Validation seeds never influence selection. Continuing starts a new search from a specimen's genome, without restoring the full population.",
+  "Количество процессов задаёт число одновременно выполняемых испытаний на CPU. 1 — последовательно. При нескольких процессах дополнительно работает координатор. Проверочные seed не участвуют в отборе. Продолжение из экземпляра начинает новый поиск от его генома.":
+    "The process count sets how many CPU trials can run simultaneously. 1 runs sequentially. Multiple processes also use a coordinator. Validation seeds never influence selection. Continuing starts a new search from the specimen's genome.",
   "Запустить эволюцию": "Start evolution",
   Остановить: "Stop",
   "Прогресс эволюции": "Evolution progress",
@@ -60,6 +63,11 @@ export const evolutionMessages = {
   "Размер сети по поколениям": "Network size by generation",
   "Нейроны, синапсы и ганглии": "Neurons, synapses and ganglia",
   "Сохранённые экземпляры": "Saved specimens",
+  "Очистить архив": "Clear archive",
+  "Очистка удаляет все файлы архива, включая закреплённые экземпляры и историю запусков. Доступна после остановки эволюции.":
+    "Clearing deletes all archive files, including pinned specimens and run history. Available after evolution stops.",
+  "Перед очисткой архива остановите эволюцию":
+    "Stop evolution before clearing the archive",
   "Лучший экземпляр и последние завершённые кандидаты сохраняются автоматически. Закреплённые экземпляры не вытесняются архивом. Открытие заменит активный документ.":
     "The best specimen and recent completed candidates are saved automatically. Pinned specimens remain in the archive. Opening replaces the active document.",
   "Для эволюции перезапустите сервер приложения.":
@@ -78,7 +86,6 @@ export const evolutionMessages = {
   "Проверка чемпиона": "Champion validation",
   "Поколение {0}/{1} · экземпляр {2}/{3} · эпизод {4}/{5} · {6} с · {7} оценок/с · отклонено {8}":
     "Generation {0}/{1} · candidate {2}/{3} · episode {4}/{5} · {6} s · {7} evaluations/s · rejected {8}",
-  "Достигнут лимит времени": "Time budget reached",
   "Лучшее fitness": "Best fitness",
   "Медианное fitness": "Median fitness",
   Синапсы: "Synapses",

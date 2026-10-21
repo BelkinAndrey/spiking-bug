@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 import copy
+from itertools import count
 import json
 import logging
 import os
 from pathlib import Path
 import random
 import shutil
+import signal
 import weakref
 import statistics
 import tempfile
@@ -17,34 +19,18 @@ import uuid
 from . import genome, schema
 from .development import seed
 from .trials import Trials, run_attempt, summarize
+from .evolution_pool import EpisodePool
+from .storage import atomic_json, unlink_file
 
 
-def atomic_json(path, data):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(".tmp")
-    temporary.write_text(json.dumps(data, ensure_ascii=False, allow_nan=False))
-    os.replace(temporary, path)
-
-
-def fitness(rows, net, options):
+def fitness(rows):
     durations = [r["duration"] for r in rows]
     lifetime = statistics.mean(durations)
-    penalty = options["fitness"]["neuron_penalty"] * len(net["neurons"])
     return dict(
-        value=lifetime - penalty,
+        value=lifetime,
         lifetime=lifetime,
-        neuron_penalty=penalty,
         lifetime_std=statistics.pstdev(durations),
     )
-
-
-class Deadline:
-    def __init__(self, event, seconds):
-        self.event = event
-        self.until = time.monotonic() + seconds
-
-    def is_set(self):
-        return self.event.is_set() or time.monotonic() >= self.until
 
 
 def assess(project, options, stop, progress, validation=False):
@@ -64,16 +50,14 @@ def assess(project, options, stop, progress, validation=False):
             return None
         rows.append(row)
         progress(i + 1, count, 0)
-    return dict(
-        rows=rows, summary=summarize(rows), fitness=fitness(rows, project["topology"], options)
-    )
+    return dict(rows=rows, summary=summarize(rows), fitness=fitness(rows))
 
 
 def evaluate(project, initial, options, event, publish, directory, job_id):
     """A fixed seed panel for all generations; validation is never used for selection."""
     directory = Path(directory)
     start = time.monotonic()
-    stop = Deadline(event, options["wall_seconds"])
+    stop = event
     rng = random.Random(seed("selection", options["seed"]))
     state = dict(
         id=job_id,
@@ -156,6 +140,22 @@ def evaluate(project, initial, options, event, publish, directory, job_id):
             if k in record
         } | {"size": genome.size(record["net"])}
 
+    pool = None
+
+    def assessment(candidate_project, validation=False, ticket=None):
+        if pool is None:
+            return assess(candidate_project, options, stop, progress, validation)
+        if ticket is None:
+            ticket = pool.submit(candidate_project, options, validation)
+        rows = pool.collect(ticket, progress)
+        if rows is None:
+            return None
+        return dict(
+            rows=rows,
+            summary=summarize(rows),
+            fitness=fitness(rows),
+        )
+
     best = None
     archive = []
     try:
@@ -167,36 +167,39 @@ def evaluate(project, initial, options, event, publish, directory, job_id):
             len(baseline_net["neurons"]) * (4096 + (max_delay + 1) * 16)
             + genome.size(baseline_net)["synapses"] * 2048
         )
-        if estimate > options["memory_mb"] * 1048576:
+        if estimate * options["workers"] > options["memory_mb"] * 1048576:
             raise ValueError("Исходная сеть превышает бюджет памяти")
+        if options["workers"] > 1:
+            pool = EpisodePool(options["workers"], stop)
         baseline = dict(id="baseline", net=baseline_net, generation=-1)
         save(baseline, "baseline")
         report(True)
-        baseline["search"] = assess(project, options, stop, progress)
+        baseline["search"] = assessment(project)
         if baseline["search"] is None:
             report(
                 True,
                 status="cancelled",
-                stop_reason="requested" if event.is_set() else "time_budget",
+                stop_reason="requested",
             )
             return
         report(True, phase="baseline_validation")
-        baseline["validation"] = assess(project, options, stop, progress, True)
+        baseline["validation"] = assessment(project, True)
         save(baseline, "baseline")
         state["baseline"] = public(baseline)
         parents = []
         initial_net = genome.decode(initial, project, options, stop)
         next_genomes = [(initial, None)]
-        for generation in range(options["generations"]):
-            if stop.is_set():
+        for generation in count():
+            if stop.is_set() or (options["generations"] and generation >= options["generations"]):
                 break
             report(True, generation=generation, candidate=0, phase="search")
             population = []
             # Elites are already fully evaluated on exactly the same panel.
             if parents:
                 population.extend(copy.deepcopy(parents[: options["elite"]]))
-            while len(population) < options["population"] and not stop.is_set():
-                slot = len(population)
+            candidates = []
+            while len(population) + len(candidates) < options["population"] and not stop.is_set():
+                slot = len(population) + len(candidates)
                 parent_id = None
                 last_error = ""
                 for retry in range(32):
@@ -220,6 +223,7 @@ def evaluate(project, initial, options, event, publish, directory, job_id):
                                 project,
                                 options,
                                 seed(options["seed"], generation, slot, retry),
+                                stop,
                             )
                         net = genome.decode(genes, project, options, stop)
                         break
@@ -243,10 +247,24 @@ def evaluate(project, initial, options, event, publish, directory, job_id):
                     net=net,
                     generation=generation,
                 )
-                report(True, candidate=slot + 1, phase="search", episode=0, episode_progress=0)
-                candidate_project = {**project, "topology": net}
-                result = assess(candidate_project, options, stop, progress)
+                candidates.append(record)
+            tickets = [
+                pool.submit({**project, "topology": record["net"]}, options) if pool else None
+                for record in candidates
+            ]
+            for record, ticket in zip(candidates, tickets):
+                report(
+                    True,
+                    candidate=len(population) + 1,
+                    phase="search",
+                    episode=0,
+                    episode_progress=0,
+                )
+                candidate_project = {**project, "topology": record["net"]}
+                result = assessment(candidate_project, ticket=ticket)
                 if result is None:
+                    if pool is not None and stop.is_set():
+                        continue
                     break
                 record["search"] = result
                 state["completed"] += 1
@@ -256,13 +274,13 @@ def evaluate(project, initial, options, event, publish, directory, job_id):
                 archive.append("candidate_" + record["id"])
                 while len(archive) > options["archive_size"]:
                     expired = archive.pop(0)
-                    (directory / (expired + ".json")).unlink(missing_ok=True)
-                    (directory / (expired + ".meta.json")).unlink(missing_ok=True)
+                    unlink_file(directory / (expired + ".json"))
+                    unlink_file(directory / (expired + ".meta.json"))
                 if best is None or result["fitness"]["value"] > best["search"]["fitness"]["value"]:
                     best = copy.deepcopy(record)
                     save(best, "best")
                     report(True, phase="validation", best=public(best))
-                    best["validation"] = assess(candidate_project, options, stop, progress, True)
+                    best["validation"] = assessment(candidate_project, True)
                     save(best, "best")
                     save(best, "candidate_" + record["id"])
                     state["best"] = public(best)
@@ -284,9 +302,7 @@ def evaluate(project, initial, options, event, publish, directory, job_id):
         report(
             True,
             status="cancelled" if stop.is_set() else "completed",
-            stop_reason=("requested" if event.is_set() else "time_budget")
-            if stop.is_set()
-            else None,
+            stop_reason="requested" if stop.is_set() else None,
             phase="done",
             episode_progress=0,
         )
@@ -295,14 +311,22 @@ def evaluate(project, initial, options, event, publish, directory, job_id):
             True,
             status="cancelled",
             phase="done",
-            stop_reason="requested" if event.is_set() else "time_budget",
+            stop_reason="requested",
         )
     except Exception as exc:
         logging.exception("Evolution failed")
         report(True, status="failed", error=str(exc))
+    finally:
+        if pool is not None:
+            pool.close()
 
 
 def _worker(project, genes, options, stop, pipe, directory, job_id):
+    def terminate(*_):
+        stop.set()
+        raise SystemExit()
+
+    signal.signal(signal.SIGTERM, terminate)
     try:
         try:
             os.nice(5)
@@ -316,6 +340,7 @@ def _worker(project, genes, options, stop, pipe, directory, job_id):
 class Evolution(Trials):
     def __init__(self, path=None):
         super().__init__()
+        self.collector = None
         self.root = Path(tempfile.mkdtemp(prefix="bug-evolution-")) if path is None else Path(path)
         self._cleanup = (
             weakref.finalize(self, shutil.rmtree, str(self.root), True) if path is None else None
@@ -343,7 +368,23 @@ class Evolution(Trials):
                         "Проект изменён в другом окне. Данные обновлены; повторите действие."
                     )
                 project = copy.deepcopy(runtime.project())
+                options.setdefault(
+                    "neuron_fatigue_rate", project["world"]["config"]["neuron_fatigue_rate"]
+                )
+                project["world"]["config"]["neuron_fatigue_rate"] = options["neuron_fatigue_rate"]
             genes = genome.initial(project, options)
+            with runtime.lock:
+                if revision != runtime.revision:
+                    raise Conflict(
+                        "Проект изменён в другом окне. Данные обновлены; повторите действие."
+                    )
+                if runtime.world.config["neuron_fatigue_rate"] != options["neuron_fatigue_rate"]:
+                    runtime.command(
+                        "world_config",
+                        {"neuron_fatigue_rate": options["neuron_fatigue_rate"]},
+                        revision,
+                    )
+                revision = project["revision"] = runtime.revision
             job_id = uuid.uuid4().hex
             directory = self.root / job_id
             directory.mkdir()
@@ -375,7 +416,7 @@ class Evolution(Trials):
             self.process = self.context.Process(
                 target=_worker,
                 args=(project, genes, options, self.stop, write, str(directory), job_id),
-                daemon=True,
+                daemon=False,
             )
             try:
                 self.process.start()
@@ -387,10 +428,25 @@ class Evolution(Trials):
                 self.process = None
                 raise
             write.close()
-            threading.Thread(
+            self.collector = threading.Thread(
                 target=self._collect, args=(self.process, read, job_id), daemon=True
-            ).start()
+            )
+            self.collector.start()
             return self.snapshot()
+
+    def close(self):
+        if self.process is None or self.collector is None:
+            return
+        self.stop.set()
+        # The collector alone reaps the coordinator. Concurrent Process.join()
+        # calls can race in waitpid and report a reaped child as still alive.
+        self.collector.join(timeout=5)
+        if self.collector.is_alive():
+            self.process.terminate()
+            self.collector.join(timeout=4)
+        if self.collector.is_alive():
+            self.process.kill()
+            self.collector.join(timeout=2)
 
     def artifacts(self):
         result = []
@@ -408,6 +464,20 @@ class Evolution(Trials):
     def cancel(self, job_id):
         super().cancel(job_id)
         return self.snapshot()
+
+    def clear_archive(self):
+        from .runtime import Conflict
+
+        with self.lock:
+            if self.process is not None and self.process.is_alive():
+                raise Conflict("Перед очисткой архива остановите эволюцию")
+            for path in self.root.iterdir():
+                if path.is_dir() and not path.is_symlink():
+                    shutil.rmtree(path)
+                else:
+                    path.unlink()
+            self.job = None
+            return self.snapshot()
 
     def artifact_path(self, identity):
         if not isinstance(identity, str) or identity.count("/") != 1:

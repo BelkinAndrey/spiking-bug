@@ -13,6 +13,11 @@ import { EditorView } from "./editor";
 import { EnvironmentView } from "./environment";
 import { openTrials } from "./trials";
 import { openEvolution } from "./evolution";
+import {
+  actionButton,
+  updateAction,
+  installActionTooltips,
+} from "./action-icons";
 import type { Mode, ComputeDevices } from "./types";
 
 const logo = `<svg viewBox="0 0 32 36" fill="none" stroke="currentColor" stroke-width="1.4"><ellipse cx="16" cy="21" rx="7" ry="10"/><path d="M16 11v20M10 15 4 11M9 21H2M10 26 4 31M22 15l6-4M23 21h7M22 26l6 5M12 8l-3-5M20 8l3-5"/><circle cx="16" cy="9" r="4"/></svg>`;
@@ -20,13 +25,14 @@ export async function start(mode: Mode) {
   const isEnv = mode === "environment";
   document.title = `Spiking Bug · ${isEnv ? t("Окружение") : t("Коннектом")}`;
   const app = document.getElementById("app")!;
-  app.innerHTML = `<header class="topbar"><a class="brand" href="/"><span class="logo">${logo}</span> SPIKING BUG</a><nav class="topnav" aria-label="${t("Приложения")}"><a href="${languageLink("http://127.0.0.1:5173")}" class="${isEnv ? "active" : ""}" ${isEnv ? "" : 'target="_blank" rel="noopener"'}>${t("Окружение")} <span class="subtle">&nbsp;01</span></a><a href="${languageLink("http://127.0.0.1:5174")}" class="${!isEnv ? "active" : ""}" ${!isEnv ? "" : 'target="_blank" rel="noopener"'}>${t("Коннектом")} <span class="subtle">&nbsp;02</span></a></nav><div class="topright"><span class="projectname" id="projectname"></span><span class="status offline" id="connection">${t("Подключение")}</span><select id="language" class="language-select" aria-label="${t("Язык")}" title="${t("Язык")}"><option value="en" lang="en">ENG</option><option value="ru" lang="ru">RU</option></select><button id="help" aria-label="${t("Справка")}">?</button></div></header>
-  <main class="workspace"><div class="heading"><div><div class="eyebrow">${isEnv ? t("Интеллект в среде") : t("Импульсная нейронная архитектура")} / ${t("Лаборатория 01")}</div><h1>${isEnv ? t("Живая среда") : t("Редактор коннектома")}</h1><p>${isEnv ? t("Создавайте мир. Наблюдайте, как нервная система управляет поведением.") : t("От отдельного импульса — к целой нервной системе.")}</p></div><div class="heading-actions">${!isEnv ? `<button id="new-document">${t("＋ Новый документ")}</button>` : ""}<button id="evolution">${t("Эволюция")}</button><button id="trials">${t("Испытание")}</button><button id="import">${t("↥ Импорт")}</button><button id="export">${t("↧ Экспорт")}</button><button id="save">${t("Сохранить")}</button><button id="toggle-chart" aria-pressed="false">${t("Скрыть график")}</button></div></div>
+  app.innerHTML = `<header class="topbar"><a class="brand" href="/"><span class="logo">${logo}</span> SPIKING BUG</a><nav class="topnav" aria-label="${t("Приложения")}"><a href="${languageLink("http://127.0.0.1:5173")}" class="${isEnv ? "active" : ""}" ${isEnv ? "" : 'target="_blank" rel="noopener"'}>${t("Окружение")} <span class="subtle">&nbsp;01</span></a><a href="${languageLink("http://127.0.0.1:5174")}" class="${!isEnv ? "active" : ""}" ${!isEnv ? "" : 'target="_blank" rel="noopener"'}>${t("Коннектом")} <span class="subtle">&nbsp;02</span></a></nav><div class="topright"><span class="projectname" id="projectname"></span><span class="status offline" id="connection">${t("Подключение")}</span><select id="language" class="language-select" aria-label="${t("Язык")}" title="${t("Язык")}"><option value="en" lang="en">ENG</option><option value="ru" lang="ru">RU</option></select>${actionButton("help", "help", t("Справка"))}</div></header>
+  <main class="workspace"><div class="heading"><div><div class="eyebrow">${isEnv ? t("Интеллект в среде") : t("Импульсная нейронная архитектура")} / ${t("Лаборатория 01")}</div><h1>${isEnv ? t("Живая среда") : t("Редактор коннектома")}</h1><p>${isEnv ? t("Создавайте мир. Наблюдайте, как нервная система управляет поведением.") : t("От отдельного импульса — к целой нервной системе.")}</p></div><div class="heading-actions">${!isEnv ? actionButton("new-document", "new", t("Новый документ")) + actionButton("arrange-graph", "layout", t("Разложить граф"), t("Рецепторы слева, моторы справа; остальные нейроны размещаются по связям. Можно отменить через Ctrl / ⌘ + Z."), "disabled") : ""}${actionButton("evolution", "evolution", t("Эволюция"))}${actionButton("trials", "trials", t("Испытание"))}${actionButton("import", "import", t("Импорт"))}${actionButton("export", "export", t("Экспорт"))}${actionButton("save", "save", t("Сохранить"))}${actionButton("toggle-chart", "chartOff", t("Скрыть график"), undefined, 'aria-pressed="false"')}</div></div>
   <div class="layout"><div class="main-column"><div class="stage"><canvas id="scene" tabindex="0" aria-label="${isEnv ? t("Арена жука. Инструменты построения слева, настройки мира справа.") : t("Схема нейронной сети. Доступный список нейронов во вкладке Нейроны справа.")}"></canvas><div class="stage-head"><strong>${isEnv ? t("ПОЛЕ / 01") : t("КОННЕКТОМ / 01")}</strong><span id="scene-meta">${isEnv ? `2 400 × 1 600 ${t("ед.")}` : "LIF · Δt 10 ms"}</span></div><span class="stage-badge" id="run-badge">${t("ПАУЗА")}</span>${isEnv ? `<div id="health-warning" class="health-warning" role="status" hidden><strong>${t("Нет здоровья")}</strong><span>${t("Движение продолжается")}</span></div>` : ""}<div class="tools" id="tools" aria-label="${t("Инструменты")}"></div><div class="stage-foot"><div class="legend">${isEnv ? `<span style="--color:#d3e7a3">${t("Жук")}</span><span style="--color:#c3dc83">${t("Пища")}</span><span style="--color:#d77e68">${t("Угроза")}</span>` : `<span style="--color:#84bcca">${t("Сенсоры")}</span><span style="--color:#c5d995">${t("Интернейроны")}</span><span style="--color:#e3ba7e">${t("Моторы")}</span>`}</div><span id="stage-hint"></span><span class="warning" id="sampling"></span></div><div class="camera-tools"><button id="fullscreen" aria-label="${t("Полноэкранный режим")}" title="${t("Полноэкранный режим")}">⛶</button><button id="toggle-inspector" title="${t("Показать или скрыть инспектор")}" aria-label="${t("Скрыть инспектор")}">☷</button><button id="zoom-out" aria-label="${t("Уменьшить масштаб")}">−</button><button id="fit" title="${t("Вписать всё")}" aria-label="${t("Вписать всё")}">⊡</button><button id="zoom-in" aria-label="${t("Увеличить масштаб")}">＋</button></div></div>
   ${isEnv ? `<div class="metrics"><div class="metric"><label>${t("ЗДОРОВЬЕ")}</label><strong id="health">100</strong><small>%</small><div class="bar"><i id="health-bar" style="width:100%"></i></div></div><div class="metric"><label>${t("ПОТРЕБЛЕНО ПИЩИ")}</label><strong id="eaten">0</strong><small>${t("порций")}</small><div class="bar"><i style="width:0"></i></div></div><div class="metric"><label>${t("ГОЛОД / УСТАЛОСТЬ")}</label><strong id="hunger">0 / 0</strong><small>%</small><div class="bar"><i id="hunger-bar" style="width:0"></i></div></div></div>` : ""}
   <div class="chart-wrap"><div class="chart-head"><span>${t("Активность")}</span><select id="chart-group" aria-label="${t("Группа графика")}"><option value="all">${t("Вся сеть")}</option></select><span class="value mono" id="rate">${t("0.0 Hz / нейрон")}</span><button id="csv" style="min-height:24px;padding:2px 7px;font-size:10px" title="${t("Экспорт измерений")}">CSV ↧</button></div><canvas id="chart" role="img" aria-label="${t("Средняя частота спайков за последние 30 секунд моделируемого времени")}"></canvas></div>
   <div class="transport"><button class="primary" id="play">${t("▶ Запустить")}</button><button id="step" title="${t("Один такт 10 мс")}">${t("▹ Такт")}</button><button id="reset" title="${t("Сбросить активность сети и вернуть жука на старт")}">${t("↺ Сброс")}</button><span class="label">${t("Темп")}</span><select id="speed" aria-label="${t("Темп симуляции")}"><option value="0.1">0.1×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="5">5×</option></select><label class="label" for="compute-device">${t("Расчёт")}</label><select id="compute-device" aria-label="${t("Устройство расчёта")}" disabled><option value="cpu">CPU · NumPy</option></select><span class="time mono" id="time">00:00.00</span><span id="compute-notice" role="status" hidden></span></div></div><aside class="sidebar" id="sidebar" aria-label="${t("Настройки")}"></aside></div>
   <footer class="footer"><span id="stats">${t("Ожидание сервера…")}</span><span id="performance"></span><span class="right" id="version">${t("ФИКСИРОВАННЫЙ ШАГ 10 мс")} &nbsp;·&nbsp; v0.1</span></footer></main><div role="status" id="toast"></div><input class="file-input" id="file" type="file" accept=".json,application/json">`;
+  installActionTooltips(app);
   const languageSelect = document.getElementById(
     "language",
   ) as HTMLSelectElement;
@@ -121,7 +127,11 @@ export async function start(mode: Mode) {
   let hideChart = localStorage.getItem("spiking-bug.hide-chart") === "true";
   const applyChart = () => {
     chart.hidden = hideChart;
-    toggle.textContent = hideChart ? t("Показать график") : t("Скрыть график");
+    updateAction(
+      toggle,
+      hideChart ? "chart" : "chartOff",
+      hideChart ? t("Показать график") : t("Скрыть график"),
+    );
     toggle.setAttribute("aria-pressed", String(hideChart));
   };
   applyChart();
@@ -197,6 +207,36 @@ export async function start(mode: Mode) {
         .then(() => toast(t("Эксперимент сохранён на сервере"))),
     );
   if (panel instanceof EditorView) {
+    const arrange = document.getElementById(
+      "arrange-graph",
+    ) as HTMLButtonElement;
+    let arranging = false;
+    const updateArrange = () => {
+      arrange.disabled = arranging || !api.project?.topology.neurons.length;
+    };
+    api.addEventListener("project", updateArrange);
+    arrange.onclick = () => {
+      if (arranging || !api.project) return;
+      arranging = true;
+      updateAction(arrange, "loading", t("Раскладываем…"));
+      arrange.setAttribute("aria-busy", "true");
+      updateArrange();
+      handle(
+        panel.arrange().finally(() => {
+          arranging = false;
+          updateAction(
+            arrange,
+            "layout",
+            t("Разложить граф"),
+            t(
+              "Рецепторы слева, моторы справа; остальные нейроны размещаются по связям. Можно отменить через Ctrl / ⌘ + Z.",
+            ),
+          );
+          arrange.removeAttribute("aria-busy");
+          updateArrange();
+        }),
+      );
+    };
     const newDocument = document.getElementById(
       "new-document",
     ) as HTMLButtonElement;

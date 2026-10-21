@@ -151,9 +151,10 @@ def mutate_link(r, g, rng, options, perturb):
         s["weight"] = abs(s["weight"]) * (1 if options["direct_exc"] else -1)
 
 
-def mutate_group(c, g, rng, options, identity, perturb, neuron_change):
+def mutate_group(c, g, rng, options, identity, perturb, neuron_change, guided=False):
     from .genome import kinds
     from .development import coordinate
+    from .genome_growth import vacant_coordinate
 
     key = rng.choice(["count", "neuron", "rgb", "connector_rgb", "radius", "connections"])
     nodes = {n["id"]: n for n in g["A"]}
@@ -177,7 +178,13 @@ def mutate_group(c, g, rng, options, identity, perturb, neuron_change):
         )
 
     if key in ("rgb", "connector_rgb"):
-        c[key] = [perturb(v, 0, 1) for v in c[key]]
+        if guided:
+            from .genome import nodespace
+
+            space = g["C"] if key == "rgb" else nodespace(g)
+            c[key] = vacant_coordinate([n for n in space if n["id"] != c["id"]], rng)
+        else:
+            c[key] = [perturb(v, 0, 1) for v in c[key]]
     elif key == "radius":
         c[key] = perturb(c[key], 30, schema.MAX_GANGLION_RADIUS, 100)
     elif key == "neuron" and mutable:
@@ -190,7 +197,11 @@ def mutate_group(c, g, rng, options, identity, perturb, neuron_change):
         else:
             n = copy.deepcopy(nodes[rng.choice(members)])
             n.update(id=identity("A"))
-            n["rgb"] = coordinate(n["id"])
+            n["rgb"] = (
+                vacant_coordinate([nodes[nid] for nid in members], rng)
+                if guided
+                else coordinate(n["id"])
+            )
             g["A"].append(n)
             c["members"].append(n["id"])
             nodes[n["id"]] = n
